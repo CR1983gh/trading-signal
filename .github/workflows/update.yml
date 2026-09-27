@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}
   push:
     branches: [main]
-    paths: ["engine.py", "universe.py", "template.html", "build_site.py"]
+    paths: ["engine.py", "universe.py", "template.html", "build_site.py", "positions.json"]
 permissions:
   contents: write
   pages: write
