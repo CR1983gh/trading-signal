@@ -324,6 +324,14 @@ def run(as_of=None):
             continue
         leaders.append(sym)
 
+    # FX rate for EUR display (USD->EUR). DE tickers are already EUR.
+    fx = None
+    try:
+        from tradegate_resolve import eurusd_rate
+        fx = eurusd_rate()
+    except Exception:
+        fx = None
+
     # Pullback setup scan
     setups = []
     for sym in leaders:
@@ -343,8 +351,23 @@ def run(as_of=None):
         if risk_per_share <= 0:
             continue
         target_2r = a["close"] + 2 * risk_per_share
+        # EUR display: DE tickers already EUR; US converted via EURUSD (USD->EUR = /fx)
+        is_de = sym.endswith(".DE")
+        if is_de:
+            eur = {"entry_zone": entry_zone, "stop": stop, "target_2r": target_2r, "close": a["close"]}
+        elif fx:
+            eur = {"entry_zone": (entry_zone[0] / fx, entry_zone[1] / fx),
+                   "stop": stop / fx, "target_2r": target_2r / fx, "close": a["close"] / fx}
+        else:
+            eur = None
+        if eur:
+            ez = eur["entry_zone"]
+            eur = {k: (round(v, 2) if isinstance(v, (int, float)) else v) for k, v in eur.items()}
+            eur["entry_zone"] = [round(ez[0], 2), round(ez[1], 2)]
         setups.append({
             "symbol": sym, "rs": rs.get(sym), "close": a["close"],
+            "ccy": "EUR" if is_de else "USD",
+            "eur": {k: (round(v, 2) if isinstance(v, (int, float)) else v) for k, v in eur.items()} if eur else None,
             "tv": tv_link(sym, exchanges.get(sym, "")),
             "tg_isin": (tg_map.get(sym) or {}).get("isin"),
             "tg_spread": (tg_map.get(sym) or {}).get("spread_pct"),
@@ -389,6 +412,7 @@ def run(as_of=None):
         "mcsi_curl_down": mcsi_curl_down,
         "market_ref": mkt, "market_above_rising_21": mkt_above_rising,
         "market_reclaim": mkt_reclaim,
+        "fx_usd_eur": round(fx, 4) if fx else None,
         "leaders_count": len(leaders),
         "focus": [s["symbol"] for s in focus],
         "setups": setups, "breaks": breaks, "reclaims": reclaims,

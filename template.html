@@ -45,6 +45,14 @@ h2{font-size:1rem;margin:18px 0 10px;color:var(--blue)}
 .badge.warn{border-color:var(--yellow);color:var(--yellow)}
 a.sym{color:var(--text);text-decoration:none;border-bottom:1px dashed var(--blue)}
 a.sym:active{color:var(--blue)}
+.eur{color:var(--blue);font-size:.82em;font-weight:400;white-space:nowrap}
+.cur{color:var(--dim);font-size:.85em;font-weight:400}
+.gauge{display:flex;gap:6px;margin-top:12px}
+.gseg{flex:1;height:10px;border-radius:5px;transition:all .3s}
+.glabels{display:flex;gap:6px;margin-top:4px}
+.glabels span{flex:1;text-align:center;font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.why{margin-top:12px;font-size:.84rem;line-height:1.5;color:var(--text);opacity:.85;background:rgba(255,255,255,.04);border-radius:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.06)}
+.meter .hint{font-size:.72rem;color:var(--dim);margin-top:5px;line-height:1.4}
 .card.grade-green{border-left-color:var(--green);background:rgba(46,160,67,.07)}
 .card.grade-yellow{border-left-color:var(--yellow);background:rgba(210,153,34,.06)}
 .card.grade-red{border-left-color:var(--red);background:rgba(248,81,73,.05)}
@@ -98,23 +106,39 @@ function f(x,d=2){ if(x==null) return "—"; return x.toLocaleString("de-DE",{mi
 
 function render(){
   const r = REGIMES[DATA.regime] || REGIMES.NEUTRAL_CHOP;
-  document.getElementById("stamp").textContent = "Stand: " + (DATA.generated_utc||"").slice(0,16).replace("T"," ") + " UTC · " + DATA.leaders_count + " Liquid Leaders";
+  document.getElementById("stamp").textContent = "Stand: " + (DATA.generated_utc||"").slice(0,16).replace("T"," ") + " UTC · " + DATA.leaders_count + " Liquid Leaders" + (DATA.fx_usd_eur ? ` · 1 € = ${f(DATA.fx_usd_eur)} $ (Umrechnung EUR-Anzeige)` : "");
   const a = document.getElementById("ampel");
   a.className = "ampel " + r.cls;
-  a.innerHTML = `<div class="bulb"></div><div class="txt">${r.label}<small>${DATA.stance||""}</small></div>`;
+  // 4-stufige Tacho-Leiste: rot -> orange -> gelb -> gruen, Marker auf aktuellem Regime
+  const ORDER = ["BREAKDOWN","NEUTRAL_CHOP","REPAIR_TEST","UPTREND_CONFIRMED"];
+  const idx = Math.max(0, ORDER.indexOf(DATA.regime));
+  const gauge = ORDER.map((k,i)=>{
+    const on = i===idx;
+    const col = {BREAKDOWN:"var(--red)",NEUTRAL_CHOP:"var(--orange)",REPAIR_TEST:"var(--yellow)",UPTREND_CONFIRMED:"var(--green)"}[k];
+    return `<div class="gseg ${on?'on':''}" style="${on?`background:${col};box-shadow:0 0 14px ${col}`:`background:${col};opacity:.18`}"></div>`;
+  }).join("");
+  const EXPLAIN = {
+    UPTREND_CONFIRMED: "Die Stimmung an der Börse ist klar positiv: Der breite Tech-Markt liegt über seinem kurzfristigen Trend und die Marktbreite stimmt. In so einem Umfeld funktionieren Kaufsignale am zuverlässigsten.",
+    REPAIR_TEST: "Der Markt erholt sich gerade von einem Rückgang, ist aber noch nicht vollständig gesund. Kleine Testkäufe sind vertretbar — große Positionen wären verfrüht.",
+    NEUTRAL_CHOP: "Der Markt hat keine klare Richtung: mal rauf, mal runter, ohne Trend. Kaufsignale hier verpuffen häufiger — deshalb: abwarten und nur beobachten.",
+    BREAKDOWN: "Der Markt ist unter seinen kurzfristigen Trend gefallen. In so einer Phase steigen die meisten Aktien nicht — Kapital schützen ist jetzt wichtiger als Rendite."
+  };
+  a.innerHTML = `<div class="bulb"></div><div class="txt">${r.label}<small>${DATA.stance||""}</small>
+    <div class="gauge">${gauge}<div class="glabels"><span>Rot</span><span>Orange</span><span>Gelb</span><span>Grün</span></div></div>
+    <div class="why">💡 ${EXPLAIN[DATA.regime]||""}</div></div>`;
 
   const m = [];
-  m.push(`<div class="meter"><div class="k">Markt-Gate (${DATA.market_ref})</div><div class="v ${DATA.market_above_rising_21?"ok":"bad"}">${DATA.market_above_rising_21?"✅ über steigender 21dma-Struktur":"❌ nicht über steigender Struktur"}${DATA.market_reclaim?" · Reclaim!":""}</div></div>`);
+  m.push(`<div class="meter"><div class="k">Markt-Gate (${DATA.market_ref})</div><div class="v ${DATA.market_above_rising_21?"ok":"bad"}">${DATA.market_above_rising_21?"✅ über steigender 21dma-Struktur":"❌ nicht über steigender Struktur"}${DATA.market_reclaim?" · Reclaim!":""}</div><div class="hint">Der wichtigste Filter: Nur wenn der breite Tech-Markt über seinem Trend liegt, sind Kaufsignale überhaupt aussichtsreich. Wie eine Ampel vor der Abfahrt.</div></div>`);
   const z = DATA.mco_z;
   const mcoCls = z<=-2?"ok":z<=-1?"warn":z>=1?"warn":"neu";
   const mcoTxt = z<=-2?"überverkauft 🎯":z<=-1?"überverkauft ⚠️":z>=1?"überkauft":"neutral";
-  m.push(`<div class="meter"><div class="k">MCO (Näherung)</div><div class="v ${mcoCls}">${f(z,2)}σ — ${mcoTxt}</div></div>`);
+  m.push(`<div class="meter"><div class="k">MCO (Näherung)</div><div class="v ${mcoCls}">${f(z,2)}σ — ${mcoTxt}</div><div class="hint">Misst die Stimmung: Wie viele Aktien steigen gerade vs. fallen? Stark überverkauft (= negativ übertrieben) bedeutet oft: bald mögliche Erholung.</div></div>`);
   let mcsiTxt = DATA.mcsi_above_10?"über 10dma ✅":"unter 10dma";
   let mcsiCls = DATA.mcsi_above_10?"ok":"bad";
   if(DATA.mcsi_reclaim_10){mcsiTxt+=" · RECLAIM = Gas 🚀";mcsiCls="ok";}
   else if(DATA.mcsi_curl_down){mcsiTxt+=" · curlt runter ⛔";mcsiCls="bad";}
   else if(DATA.mcsi_curl_up){mcsiTxt+=" · curlt hoch = testen";mcsiCls="warn";}
-  m.push(`<div class="meter"><div class="k">MCSI (Bestätigung)</div><div class="v ${mcsiCls}">${mcsiTxt}</div></div>`);
+  m.push(`<div class="meter"><div class="k">MCSI (Bestätigung)</div><div class="v ${mcsiCls}">${mcsiTxt}</div><div class="hint">Der Trend der Marktstimmung: Steigt die Beteiligung gerade? Bestätigt er das Kaufsignal, darf man größer einsteigen.</div></div>`);
   document.getElementById("meters").innerHTML = m.join("");
 
   const all = DATA.setups || [];
@@ -123,6 +147,11 @@ function render(){
   const GRADE_COLOR = {green:"var(--green)", yellow:"var(--yellow)", red:"var(--red)"};
   function cardHtml(s, i, dim){
     const [lo,hi]=s.entry_zone;
+    const eu = s.eur;
+    const cur = s.ccy || "USD";
+    const showEur = eu && cur !== "EUR";
+    const euStr = (v)=> showEur && v != null ? ` <span class="eur">≈ ${f(v)} €</span>` : '';
+    const euStr2 = (z)=> showEur && z ? ` <span class="eur">≈ ${f(z[0])}–${f(z[1])} €</span>` : '';
     const badges = [];
     if(s.contraction) badges.push('<span class="badge on">Kontraktion ✅</span>');
     if(s.tg_spread != null) badges.push(`<span class="badge ${s.tg_spread<=0.5?'on':'warn'}">TG-Spread ${f(s.tg_spread,2)}%</span>`);
@@ -136,10 +165,10 @@ function render(){
         <span><span class="grade-badge grade-${g}">${GRADE_LABEL[g]}</span> <span class="rs">RS <b>${s.rs}</b> · Score ${f(s.score,2)}</span></span>
       </div>
       <div class="rows">
-        <span class="l">Entry-Zone</span><span class="r ${dim?'':'buy'}">${f(lo)} – ${f(hi)} $</span>
+        <span class="l">Entry-Zone <span class="cur">${cur}</span></span><span class="r ${dim?'':'buy'}">${f(lo)} – ${f(hi)} ${cur}${euStr2(eu&&eu.entry_zone)}</span>
         <span class="l">Distanz zur 21-EMA</span><span class="r">${f(s.dist_atr,2)}× ATR</span>
-        <span class="l">Stop (21-EMA-Low)</span><span class="r stop">${f(s.stop)} $</span>
-        <span class="l">2R-Ziel (⅓ Trim)</span><span class="r tgt">${f(s.target_2r)} $</span>
+        <span class="l">Stop (21-EMA-Low)</span><span class="r stop">${f(s.stop)} ${cur}${euStr(eu&&eu.stop)}</span>
+        <span class="l">2R-Ziel (⅓ Trim)</span><span class="r tgt">${f(s.target_2r)} ${cur}${euStr(eu&&eu.target_2r)}</span>
       </div>
       <div class="scorebar"><i style="width:${Math.round((s.score||0)*100)}%;background:${GRADE_COLOR[g]}"></i></div>
       <div class="badges">${badges.join("")}</div>
