@@ -125,6 +125,7 @@ function render(){
     const [lo,hi]=s.entry_zone;
     const badges = [];
     if(s.contraction) badges.push('<span class="badge on">Kontraktion ✅</span>');
+    if(s.tg_spread != null) badges.push(`<span class="badge ${s.tg_spread<=0.5?'on':'warn'}">TG-Spread ${f(s.tg_spread,2)}%</span>`);
     if(s.earnings_unknown) badges.push('<span class="badge warn">Earnings unklar</span>');
     const tvUrl = s.tv ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(s.tv)}` : '#';
     const g = s.grade || "yellow";

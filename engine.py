@@ -210,9 +210,20 @@ def earnings_within_n_days(symbol, n=7, ref_ts=None):
         return None  # unknown -> don't block, flag in report
 
 
+def load_tg_map():
+    path = os.path.join(HERE, "tradegate_map.json")
+    if os.path.exists(path):
+        try:
+            return json.load(open(path))
+        except Exception:
+            return {}
+    return {}
+
+
 def run(as_of=None):
     """as_of: 'YYYY-MM-DD' -> simulate run as of that day's close (data truncated)."""
     from universe import US_TICKERS, DE_TICKERS, MARKET_REFERENCES
+    tg_map = load_tg_map()
     all_syms = US_TICKERS + DE_TICKERS
     asof_ts = None
     if as_of:
@@ -290,7 +301,8 @@ def run(as_of=None):
     closes_by_symbol = {s: a["closes"] for s, a in ana.items()}
     rs, _ = rs_rank(closes_by_symbol)
 
-    # Liquid Leaders filter (Alex's scan, adapted)
+    # Liquid Leaders filter (Alex's scan, adapted) + Tradegate tradability gate:
+    # EUR-tradable on Tradegate with spread <= 1.0% and daily EUR volume >= 500k.
     leaders = []
     for sym, a in ana.items():
         if a["dollar_vol"] < 100e6:
@@ -302,6 +314,13 @@ def run(as_of=None):
         if not (3.0 <= a["adr_pct"] <= 15.0):
             continue
         if rs.get(sym, 0) < 70:
+            continue
+        tg = tg_map.get(sym) or {}
+        spread = tg.get("spread_pct")
+        vol = tg.get("eur_volume")
+        if not tg.get("isin") or spread is None or spread > 1.0:
+            continue
+        if vol is not None and vol < 500_000:
             continue
         leaders.append(sym)
 
@@ -327,6 +346,8 @@ def run(as_of=None):
         setups.append({
             "symbol": sym, "rs": rs.get(sym), "close": a["close"],
             "tv": tv_link(sym, exchanges.get(sym, "")),
+            "tg_isin": (tg_map.get(sym) or {}).get("isin"),
+            "tg_spread": (tg_map.get(sym) or {}).get("spread_pct"),
             "entry_zone": entry_zone, "stop": stop, "target_2r": target_2r,
             "dist_atr": a["dist_ema21_atr"], "contraction": a["contraction"],
             "earnings_unknown": earn_soon is None,
