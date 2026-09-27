@@ -4,6 +4,9 @@ on:
     # Mo-Fr 21:15 UTC = 23:15 deutsche Sommerzeit (kurz nach US-Schluss)
     - cron: "15 21 * * 1-5"
   workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["engine.py", "universe.py", "template.html", "build_site.py"]
 permissions:
   contents: write
 jobs:
