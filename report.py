@@ -62,8 +62,16 @@ def main(state_file="state.json"):
             eus = ""
             if eu and s.get("ccy") != "EUR":
                 eus = f"\n   € Zone {fmt(eu['entry_zone'][0])}–{fmt(eu['entry_zone'][1])} · Stop {fmt(eu['stop'])} · 2R {fmt(eu['target_2r'])}"
+            bn = ""
+            if s.get("buy_now"):
+                bn = f"\n   🔴🟢 *KAUFSIGNAL: Schluss {fmt(s['close'])} {s.get('ccy','USD')} in Entry-Zone → Limitorder zum Schlusskurs!*"
+            sp = s.get("stop_pct")
+            sps = ""
+            if sp is not None:
+                mark = "✓" if s.get("stop_pct_ok") else "⚠️"
+                sps = f" · Stop-Abstand {fmt(sp,1)}% {mark}"
             lines.append(
-                f"{g} *{i+1}. {s['symbol']}* (Score {fmt(s.get('score',0),2)} · RS {s['rs']}) — Zone {fmt(zone_lo)}–{fmt(zone_hi)}$ · Stop {fmt(s['stop'])}$ · 2R {fmt(s['target_2r'])}$ {tag}{unk}{eus}"
+                f"{g} *{i+1}. {s['symbol']}* (Score {fmt(s.get('score',0),2)} · RS {s['rs']}) — Zone {fmt(zone_lo)}–{fmt(zone_hi)}$ · Stop {fmt(s['stop'])}$ · 2R {fmt(s['target_2r'])}$ {tag}{unk}{sps}" + bn + eus
             )
         lines.append("")
         lines.append("_🟢 High Conviction (max 1% Risiko möglich) · 🟡 Mittel (0,25–0,5%) · 🔴 Schwach (nur wenn überhaupt: 0,125–0,25%)_")

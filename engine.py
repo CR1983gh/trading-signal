@@ -374,6 +374,11 @@ def run(as_of=None):
             "entry_zone": entry_zone, "stop": stop, "target_2r": target_2r,
             "dist_atr": a["dist_ema21_atr"], "contraction": a["contraction"],
             "earnings_unknown": earn_soon is None,
+            # BUY NOW: Tagesschluss liegt IN der Entry-Zone -> Limitorder zum Schlusskurs moeglich
+            "buy_now": (entry_zone[0] <= a["close"] <= entry_zone[1]),
+            # Risk: prozentualer Abstand Schlusskurs -> Stop. Ideal <= 5%.
+            "stop_pct": round(risk_per_share / a["close"] * 100.0, 2),
+            "stop_pct_ok": (risk_per_share / a["close"] * 100.0) <= 5.0,
         })
     setups.sort(key=lambda s: (-s["rs"], s["dist_atr"]))
     focus = setups[:5]
