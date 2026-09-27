@@ -334,6 +334,20 @@ def run(as_of=None):
     setups.sort(key=lambda s: (-s["rs"], s["dist_atr"]))
     focus = setups[:5]
 
+    # Quality score per setup (Alex's tie-break priorities from the docs):
+    # RS (relative strength) 45%, proximity to structure 30%,
+    # contraction 15%, earnings cleanliness 10%.
+    for s in setups:
+        rs_n = s["rs"] / 99.0
+        prox = max(0.0, min(1.0, 1.0 - s["dist_atr"]))  # 0..1xATR -> 1..0
+        contr = 1.0 if s["contraction"] else 0.0
+        earn = 0.5 if s["earnings_unknown"] else 1.0
+        score = 0.45 * rs_n + 0.30 * prox + 0.15 * contr + 0.10 * earn
+        s["score"] = round(score, 3)
+        s["grade"] = "green" if score >= 0.72 else ("yellow" if score >= 0.58 else "red")
+    setups.sort(key=lambda s: -s["score"])
+    focus = setups[:5]
+
     # structure breaks for previously signaled names (state diff)
     state_path = os.path.join(HERE, "state_sim.json" if as_of else "state.json")
     prev = {}
