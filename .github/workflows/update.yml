@@ -1,8 +1,8 @@
 name: Daily Signal Update
 on:
   schedule:
-    # Mo-Fr 21:15 UTC = 23:15 deutsche Sommerzeit (kurz nach US-Schluss)
-    - cron: "15 21 * * 1-5"
+    # Mo-Fr 20:00 UTC = 22:00 deutsche Sommerzeit (direkt nach US-Schluss)
+    - cron: "0 20 * * 1-5"
   workflow_dispatch: {}
   push:
     branches: [main]

@@ -43,6 +43,8 @@ h2{font-size:1rem;margin:18px 0 10px;color:var(--blue)}
 .badge{font-size:.72rem;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--dim)}
 .badge.on{border-color:var(--green);color:var(--green)}
 .badge.warn{border-color:var(--yellow);color:var(--yellow)}
+a.sym{color:var(--text);text-decoration:none;border-bottom:1px dashed var(--blue)}
+a.sym:active{color:var(--blue)}
 .alert{border-left-color:var(--red);background:rgba(248,81,73,.08)}
 .alert.rec{border-left-color:var(--green);background:rgba(46,160,67,.08)}
 .empty{text-align:center;color:var(--dim);padding:28px;border:1px dashed var(--border);border-radius:10px}
@@ -114,8 +116,9 @@ function render(){
       const badges = [];
       if(s.contraction) badges.push('<span class="badge on">Kontraktion ✅</span>');
       if(s.earnings_unknown) badges.push('<span class="badge warn">Earnings unklar</span>');
+      const tvUrl = s.tv ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(s.tv)}` : '#';
       return `<div class="card">
-        <div class="top"><span class="sym">${s.symbol}</span><span class="rs">RS-Rank <b>${s.rs}</b>/99</span></div>
+        <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${s.symbol} ↗</a></span><span class="rs">RS-Rank <b>${s.rs}</b>/99</span></div>
         <div class="rows">
           <span class="l">Entry-Zone</span><span class="r buy">${f(lo)} – ${f(hi)} $</span>
           <span class="l">Distanz zur 21-EMA</span><span class="r">${f(s.dist_atr,2)}× ATR</span>
@@ -129,8 +132,9 @@ function render(){
     document.getElementById("focusTitle").textContent = "👀 Focuslist — Setups erkannt, aber Markt-Gate ZU";
     c.innerHTML = setups.map(s=>{
       const [lo,hi]=s.entry_zone;
+      const tvUrl = s.tv ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(s.tv)}` : '#';
       return `<div class="card" style="opacity:.65;border-left-color:var(--dim)">
-        <div class="top"><span class="sym">${s.symbol}</span><span class="rs">RS <b>${s.rs}</b></span></div>
+        <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${s.symbol} ↗</a></span><span class="rs">RS <b>${s.rs}</b></span></div>
         <div class="rows">
           <span class="l">Entry-Zone (beobachten)</span><span class="r">${f(lo)} – ${f(hi)} $</span>
           <span class="l">Stop</span><span class="r stop">${f(s.stop)} $</span>

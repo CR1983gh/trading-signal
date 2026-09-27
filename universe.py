@@ -9,7 +9,7 @@ US_UNIVERSE = [
     "APP","NFLX","BKNG","ABNB","UBER","DASH","SPOT",
     "ADSK","PAYX","ADP","INTC","MRVL","ON","ARM","ANET","VRT","COHR",
     "CIEN","DELL","HPQ","CSCO","IBM","ACN","BRZE","HUBS","TEAM","MNDY",
-    "HOON","HOOD","COIN","RBLX","ROKU","DUOL","TTD","SE","BROS",
+    "HOOD","COIN","RBLX","ROKU","DUOL","TTD","SE","BROS",
     "ALAB","CRDO","NBIS","IONQ","RGTI","QBTS",
     "AXON","KTOS","LUNR","RDW",
     "NKE","LULU","SBUX","CMG","YUM","MCD",
@@ -29,8 +29,6 @@ DE_UNIVERSE = [
     "AIXA.DE","DTG.DE","FME.DE","HEG.DE","HNR1.DE","KBX.DE","LEG.DE","NRK.DE",
     "PAP.DE","QIA.DE","R3N.DE","SRT.DE","ST1.DE","SY1.DE","TLG.DE",
     "UNA.DE","WCH.DE",
-    # MDAX growth picks
-    "NWI.DE","DHT.DE","SAP2.DE","IBEV.DE","VOW.DE",
 ]
 DE_TICKERS = list(dict.fromkeys(DE_UNIVERSE))
 

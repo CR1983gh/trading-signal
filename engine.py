@@ -121,6 +121,20 @@ def mcclellan(up_counts, down_counts):
     return mco, mcsi, mcsi_10, mean, sd
 
 
+EXCHANGE_MAP = {"NMS": "NASDAQ", "NGM": "NASDAQ", "NAS": "NASDAQ",
+               "NYQ": "NYSE", "NYS": "NYSE", "NCM": "NASDAQ",
+               "GER": "XETRA"}
+
+
+def tv_link(symbol, exchange):
+    """TradingView deep link: opens app on Android via tvchart://, web fallback."""
+    ex = EXCHANGE_MAP.get(exchange)
+    if not ex:
+        return "https://www.tradingview.com/chart/?symbol=" + symbol
+    full = f"{ex}:{symbol.replace('.DE','')}" if ex == "XETRA" else f"{ex}:{symbol}"
+    return full
+
+
 def analyze_symbol(rows):
     if not rows or len(rows) < 260:
         return None
@@ -205,12 +219,14 @@ def run(as_of=None):
         asof_ts = datetime.strptime(as_of, "%Y-%m-%d").replace(
             hour=23, minute=59, second=59, tzinfo=timezone.utc).timestamp()
     data = {}
+    exchanges = {}
     for sym in all_syms:
         rows, meta = fetch_chart(sym)
         if rows:
             if asof_ts:
                 rows = [r for r in rows if r["t"] <= asof_ts]
             data[sym] = rows
+            exchanges[sym] = meta.get("exchangeName", "")
         time.sleep(0.15)
 
     # per-symbol analysis
@@ -310,6 +326,7 @@ def run(as_of=None):
         target_2r = a["close"] + 2 * risk_per_share
         setups.append({
             "symbol": sym, "rs": rs.get(sym), "close": a["close"],
+            "tv": tv_link(sym, exchanges.get(sym, "")),
             "entry_zone": entry_zone, "stop": stop, "target_2r": target_2r,
             "dist_atr": a["dist_ema21_atr"], "contraction": a["contraction"],
             "earnings_unknown": earn_soon is None,
