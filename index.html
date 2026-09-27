@@ -43,6 +43,8 @@ h2{font-size:1rem;margin:18px 0 10px;color:var(--blue)}
 .badge{font-size:.72rem;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--dim)}
 .badge.on{border-color:var(--green);color:var(--green)}
 .badge.warn{border-color:var(--yellow);color:var(--yellow)}
+a.sym{color:var(--text);text-decoration:none;border-bottom:1px dashed var(--blue)}
+a.sym:active{color:var(--blue)}
 .alert{border-left-color:var(--red);background:rgba(248,81,73,.08)}
 .alert.rec{border-left-color:var(--green);background:rgba(46,160,67,.08)}
 .empty{text-align:center;color:var(--dim);padding:28px;border:1px dashed var(--border);border-radius:10px}
@@ -73,7 +75,7 @@ button:hover{border-color:var(--blue)}
 </footer>
 
 <script>
-const DATA = {"generated_utc":"2026-09-27T12:47:07.114632+00:00","regime":"NEUTRAL_CHOP","stance":"Abwarten. Nur High-Conviction-Setups minimaler Gr\u00f6\u00dfe.","mco":-0.4151300404132341,"mco_z":-0.138072717705271,"mcsi":352.13721207371725,"mcsi_above_10":false,"mcsi_reclaim_10":false,"mcsi_curl_up":false,"mcsi_curl_down":true,"market_ref":"QQQE","market_above_rising_21":false,"market_reclaim":false,"leaders_count":25,"focus":["TEAM","PANW","FTNT","NBIS","SNOW"],"setups":[{"symbol":"TEAM","rs":95,"close":187.74000549316406,"entry_zone":[180.01827277978842,188.08806772921338],"stop":180.01827277978842,"target_2r":203.18347091991535,"dist_atr":0.4526900206646347,"contraction":true,"earnings_unknown":false},{"symbol":"PANW","rs":93,"close":374.739990234375,"entry_zone":[356.4981571651157,373.02477151424796],"stop":356.4981571651157,"target_2r":411.22365637289363,"dist_atr":0.49140551976596686,"contraction":false,"earnings_unknown":false},{"symbol":"FTNT","rs":92,"close":173.4600067138672,"entry_zone":[164.36958105530564,170.81197223255737],"stop":164.36958105530564,"target_2r":191.64085803099027,"dist_atr":0.796199005480112,"contraction":true,"earnings_unknown":false},{"symbol":"NBIS","rs":91,"close":237.3300018310547,"entry_zone":[218.66332839541195,233.31773679610566],"stop":218.66332839541195,"target_2r":274.66334870234016,"dist_atr":0.7797154722720944,"contraction":true,"earnings_unknown":false},{"symbol":"SNOW","rs":89,"close":335.94000244140625,"entry_zone":[325.2899503565796,338.70939576089546],"stop":325.2899503565796,"target_2r":357.24010661105956,"dist_atr":0.3563525676086732,"contraction":true,"earnings_unknown":false},{"symbol":"MDB","rs":83,"close":410.44000244140625,"entry_zone":[390.40789609591275,410.2797759577532],"stop":390.40789609591275,"target_2r":450.50421513239326,"dist_atr":0.4849966531385325,"contraction":true,"earnings_unknown":false},{"symbol":"HOOD","rs":70,"close":119.4000015258789,"entry_zone":[111.67186927430453,117.28426657469326],"stop":111.67186927430453,"target_2r":134.85626602902767,"dist_atr":0.8436505963497424,"contraction":true,"earnings_unknown":false}],"breaks":[],"reclaims":[]};
+const DATA = {"generated_utc":"2026-09-27T13:02:57.289675+00:00","regime":"NEUTRAL_CHOP","stance":"Abwarten. Nur High-Conviction-Setups minimaler Gr\u00f6\u00dfe.","mco":-0.3102426085905843,"mco_z":-0.11383764495858914,"mcsi":343.9070224072044,"mcsi_above_10":false,"mcsi_reclaim_10":false,"mcsi_curl_up":false,"mcsi_curl_down":true,"market_ref":"QQQE","market_above_rising_21":false,"market_reclaim":false,"leaders_count":25,"focus":["TEAM","PANW","FTNT","NBIS","SNOW"],"setups":[{"symbol":"TEAM","rs":94,"close":187.74000549316406,"tv":"NASDAQ:TEAM","entry_zone":[180.01827277978842,188.08806772921338],"stop":180.01827277978842,"target_2r":203.18347091991535,"dist_atr":0.4526900206646347,"contraction":true,"earnings_unknown":false},{"symbol":"PANW","rs":93,"close":374.739990234375,"tv":"NASDAQ:PANW","entry_zone":[356.4981571651157,373.02477151424796],"stop":356.4981571651157,"target_2r":411.22365637289363,"dist_atr":0.49140551976596686,"contraction":false,"earnings_unknown":false},{"symbol":"FTNT","rs":92,"close":173.4600067138672,"tv":"NASDAQ:FTNT","entry_zone":[164.36958105530564,170.81197223255737],"stop":164.36958105530564,"target_2r":191.64085803099027,"dist_atr":0.796199005480112,"contraction":true,"earnings_unknown":false},{"symbol":"NBIS","rs":91,"close":237.3300018310547,"tv":"NASDAQ:NBIS","entry_zone":[218.66332839541195,233.31773679610566],"stop":218.66332839541195,"target_2r":274.66334870234016,"dist_atr":0.7797154722720944,"contraction":true,"earnings_unknown":false},{"symbol":"SNOW","rs":89,"close":335.94000244140625,"tv":"NYSE:SNOW","entry_zone":[325.2899503565796,338.70939576089546],"stop":325.2899503565796,"target_2r":357.24010661105956,"dist_atr":0.3563525676086732,"contraction":true,"earnings_unknown":false},{"symbol":"MDB","rs":82,"close":410.44000244140625,"tv":"NASDAQ:MDB","entry_zone":[390.40789609591275,410.2797759577532],"stop":390.40789609591275,"target_2r":450.50421513239326,"dist_atr":0.4849966531385325,"contraction":true,"earnings_unknown":false},{"symbol":"HOOD","rs":70,"close":119.4000015258789,"tv":"NASDAQ:HOOD","entry_zone":[111.67186927430453,117.28426657469326],"stop":111.67186927430453,"target_2r":134.85626602902767,"dist_atr":0.8436505963497424,"contraction":true,"earnings_unknown":false}],"breaks":[],"reclaims":[]};
 
 const REGIMES = {
   UPTREND_CONFIRMED:{cls:"g-green",label:"GRÜN — Aufwärtstrend bestätigt",buy:true},
@@ -114,8 +116,9 @@ function render(){
       const badges = [];
       if(s.contraction) badges.push('<span class="badge on">Kontraktion ✅</span>');
       if(s.earnings_unknown) badges.push('<span class="badge warn">Earnings unklar</span>');
+      const tvUrl = s.tv ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(s.tv)}` : '#';
       return `<div class="card">
-        <div class="top"><span class="sym">${s.symbol}</span><span class="rs">RS-Rank <b>${s.rs}</b>/99</span></div>
+        <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${s.symbol} ↗</a></span><span class="rs">RS-Rank <b>${s.rs}</b>/99</span></div>
         <div class="rows">
           <span class="l">Entry-Zone</span><span class="r buy">${f(lo)} – ${f(hi)} $</span>
           <span class="l">Distanz zur 21-EMA</span><span class="r">${f(s.dist_atr,2)}× ATR</span>
@@ -129,8 +132,9 @@ function render(){
     document.getElementById("focusTitle").textContent = "👀 Focuslist — Setups erkannt, aber Markt-Gate ZU";
     c.innerHTML = setups.map(s=>{
       const [lo,hi]=s.entry_zone;
+      const tvUrl = s.tv ? `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(s.tv)}` : '#';
       return `<div class="card" style="opacity:.65;border-left-color:var(--dim)">
-        <div class="top"><span class="sym">${s.symbol}</span><span class="rs">RS <b>${s.rs}</b></span></div>
+        <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${s.symbol} ↗</a></span><span class="rs">RS <b>${s.rs}</b></span></div>
         <div class="rows">
           <span class="l">Entry-Zone (beobachten)</span><span class="r">${f(lo)} – ${f(hi)} $</span>
           <span class="l">Stop</span><span class="r stop">${f(s.stop)} $</span>
