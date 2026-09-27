@@ -1,0 +1,354 @@
+#!/usr/bin/env python3
+"""
+PrimeTrading-style daily signal engine (Alex's Swing Trading System).
+Implements: 21dma-structure (EMA of highs/closes/lows), ATR, RS rank,
+McClellan-style breadth (MCO/MCSI approximated over the liquid universe),
+pullback scan, focus list, market gate.
+
+Data: Yahoo Finance chart API (no key). Output: JSON state + German report text.
+NOT financial advice — signal service only.
+"""
+import json, math, os, sys, time, urllib.request
+from datetime import datetime, timezone
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+CACHE = os.path.join(HERE, "cache")
+os.makedirs(CACHE, exist_ok=True)
+
+UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
+
+
+def fetch_chart(symbol, range_="2y", interval="1d", retries=3):
+    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+           f"?range={range_}&interval={interval}&events=div%2Csplit")
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, headers=UA)
+            with urllib.request.urlopen(req, timeout=25) as r:
+                d = json.load(r)
+            res = d["chart"]["result"][0]
+            ts = res["timestamp"]
+            q = res["indicators"]["quote"][0]
+            rows = []
+            for i, t in enumerate(ts):
+                o, h, l, c, v = q["open"][i], q["high"][i], q["low"][i], q["close"][i], q["volume"][i]
+                if c is None or h is None or l is None:
+                    continue
+                rows.append({"t": t, "o": o or c, "h": h, "l": l, "c": c, "v": v or 0})
+            return rows, res.get("meta", {})
+        except Exception as e:
+            if attempt == retries - 1:
+                return None, {"error": str(e)}
+            time.sleep(1.5 * (attempt + 1))
+
+
+def ema(values, period):
+    k = 2.0 / (period + 1)
+    out = []
+    prev = None
+    for v in values:
+        prev = v if prev is None else (v * k + prev * (1 - k))
+        out.append(prev)
+    return out
+
+
+def atr(rows, period=14):
+    trs = []
+    for i, r in enumerate(rows):
+        if i == 0:
+            trs.append(r["h"] - r["l"])
+        else:
+            pc = rows[i - 1]["c"]
+            trs.append(max(r["h"] - r["l"], abs(r["h"] - pc), abs(r["l"] - pc)))
+    return ema(trs, period)
+
+
+def structure(rows, length=21):
+    """21dma-structure: EMA of highs (top band), closes (mid), lows (bottom band)."""
+    hi = ema([r["h"] for r in rows], length)
+    cl = ema([r["c"] for r in rows], length)
+    lo = ema([r["l"] for r in rows], length)
+    return hi, cl, lo
+
+
+def rising(series, n=3):
+    if len(series) < n + 1:
+        return False
+    return series[-1] > series[-1 - n]
+
+
+def rs_rank(closes_by_symbol, w=(21, 63, 126, 252)):
+    """Composite RS: weighted multi-horizon performance + proximity to 52w high.
+    Returns dict symbol -> percentile rank 1-99 (higher = stronger)."""
+    raw = {}
+    for sym, closes in closes_by_symbol.items():
+        if len(closes) < 253:
+            continue
+        perf = 0.0
+        total_w = 0
+        for p, wt in zip(w, (0.25, 0.25, 0.25, 0.25)):
+            if len(closes) > p:
+                perf += wt * (closes[-1] / closes[-1 - p] - 1.0)
+                total_w += wt
+        perf /= total_w if total_w else 1
+        hi52 = max(closes[-252:])
+        lo52 = min(closes[-252:])
+        prox = (closes[-1] - lo52) / (hi52 - lo52) if hi52 > lo52 else 0.5
+        raw[sym] = perf + 0.3 * prox
+    ranked = sorted(raw.items(), key=lambda kv: kv[1])
+    n = len(ranked)
+    return {s: round(1 + 98 * i / max(n - 1, 1)) for i, (s, _) in enumerate(ranked)}, raw
+
+
+def mcclellan(up_counts, down_counts):
+    """McClellan-style over provided daily A/D counts (approximation of NYSE/NDX)."""
+    net = [u - d for u, d in zip(up_counts, down_counts)]
+    e19 = ema(net, 19)
+    e39 = ema(net, 39)
+    mco = [a - b for a, b in zip(e19, e39)]
+    mcsi = []
+    acc = 0.0
+    for m in mco:
+        acc += m
+        mcsi.append(acc)
+    mcsi_10 = ema(mcsi, 10)
+    # rolling sigma of MCO for z-scores
+    n = len(mco)
+    window = mco[-120:] if n >= 120 else mco
+    mean = sum(window) / len(window)
+    var = sum((x - mean) ** 2 for x in window) / len(window)
+    sd = math.sqrt(var) if var > 0 else 1.0
+    return mco, mcsi, mcsi_10, mean, sd
+
+
+def analyze_symbol(rows):
+    if not rows or len(rows) < 260:
+        return None
+    hi, cl, lo = structure(rows, 21)
+    a = atr(rows, 14)[-1]
+    c = rows[-1]["c"]
+    ema21_lo, ema21_mid = lo[-1], cl[-1]
+    sma50 = sum(r["c"] for r in rows[-50:]) / 50
+    dist_ema21_atr = (c - ema21_mid) / a if a else 99
+    dist_sma50_atr = (c - sma50) / a if a else 99
+    adr_pct = ((sum(r["h"] - r["l"] for r in rows[-21:]) / 21) / c) * 100
+    vol_avg_dollar = sum(r["v"] * r["c"] for r in rows[-21:]) / 21
+    vol_avg_shares = sum(r["v"] for r in rows[-21:]) / 21
+    # contraction: range of last 5 closes vs ATR
+    last5 = [r["c"] for r in rows[-5:]]
+    contraction = (max(last5) - min(last5)) < 1.2 * a
+    struct_rising = rising(cl, 3) and rising(lo, 3)
+    above_all = c > hi[-1] and c > cl[-1] and c > lo[-1]
+    below_all = c < lo[-1]
+    broke_low = rows[-1]["c"] < lo[-1] and rows[-2]["c"] >= lo[-2]
+    reclaim = rows[-1]["c"] > hi[-1] and rows[-2]["c"] <= hi[-2]
+    closes = [r["c"] for r in rows]
+    return {
+        "close": c, "ema21_hi": hi[-1], "ema21_mid": cl[-1], "ema21_lo": lo[-1],
+        "sma50": sma50, "atr": a, "adr_pct": adr_pct,
+        "dist_ema21_atr": dist_ema21_atr, "dist_sma50_atr": dist_sma50_atr,
+        "dollar_vol": vol_avg_dollar, "share_vol": vol_avg_shares,
+        "contraction": contraction, "struct_rising": struct_rising,
+        "above_all": above_all, "below_all": below_all,
+        "broke_low": broke_low, "reclaim": reclaim,
+        "closes": closes,
+    }
+
+
+_CRUMB_CACHE = {"done": False, "val": None}
+
+def _get_crumb():
+    if _CRUMB_CACHE["done"]:
+        return _CRUMB_CACHE["val"]
+    _CRUMB_CACHE["done"] = True
+    import http.cookiejar
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [("User-Agent", UA["User-Agent"])]
+    try:
+        opener.open("https://fc.yahoo.com", timeout=15)
+    except Exception:
+        pass
+    crumb = opener.open("https://query1.finance.yahoo.com/v1/test/getcrumb", timeout=15).read().decode().strip()
+    _CRUMB_CACHE["val"] = (opener, crumb)
+    return _CRUMB_CACHE["val"]
+
+
+def earnings_within_n_days(symbol, n=7, ref_ts=None):
+    """Best-effort via Yahoo calendarEvents (quoteSummary + crumb). True/False/None.
+    ref_ts: unix timestamp to measure 'now' from (for as-of simulations)."""
+    if ref_ts is None:
+        ref_ts = time.time()
+    try:
+        opener, crumb = _get_crumb()
+        url = (f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}"
+               f"?modules=calendarEvents&crumb={crumb}")
+        with opener.open(url, timeout=20) as r:
+            d = json.load(r)
+        ev = d["quoteSummary"]["result"][0].get("calendarEvents", {}).get("earnings", {})
+        dates = ev.get("earningsDate", [])
+        for dd in dates:
+            ts = dd.get("raw")
+            if ts and ts <= ref_ts + n * 86400 and ts >= ref_ts - 86400:
+                return True
+        return False
+    except Exception:
+        return None  # unknown -> don't block, flag in report
+
+
+def run(as_of=None):
+    """as_of: 'YYYY-MM-DD' -> simulate run as of that day's close (data truncated)."""
+    from universe import US_TICKERS, DE_TICKERS, MARKET_REFERENCES
+    all_syms = US_TICKERS + DE_TICKERS
+    asof_ts = None
+    if as_of:
+        asof_ts = datetime.strptime(as_of, "%Y-%m-%d").replace(
+            hour=23, minute=59, second=59, tzinfo=timezone.utc).timestamp()
+    data = {}
+    for sym in all_syms:
+        rows, meta = fetch_chart(sym)
+        if rows:
+            if asof_ts:
+                rows = [r for r in rows if r["t"] <= asof_ts]
+            data[sym] = rows
+        time.sleep(0.15)
+
+    # per-symbol analysis
+    ana = {}
+    for sym, rows in data.items():
+        a = analyze_symbol(rows)
+        if a:
+            ana[sym] = a
+
+    # breadth: daily up/down counts across combined universe (approximation)
+    # align by date index from the end
+    def updown(rows):
+        ups, downs = [], []
+        for i in range(1, len(rows)):
+            ups.append(1 if rows[i]["c"] > rows[i - 1]["c"] else 0)
+            downs.append(1 if rows[i]["c"] < rows[i - 1]["c"] else 0)
+        return ups, downs
+
+    up_series, down_series = [], []
+    L = min(len(r) - 1 for r in data.values())
+    for k in range(L):
+        u = d = 0
+        for rows in data.values():
+            i = len(rows) - L + k
+            if rows[i]["c"] > rows[i - 1]["c"]:
+                u += 1
+            elif rows[i]["c"] < rows[i - 1]["c"]:
+                d += 1
+        up_series.append(u)
+        down_series.append(d)
+
+    mco, mcsi, mcsi10, mco_mean, mco_sd = mcclellan(up_series, down_series)
+    mco_now = mco[-1]
+    mco_z = (mco_now - mco_mean) / mco_sd
+    mcsi_curl_up = mcsi[-1] > mcsi[-2] > mcsi[-3] or mcsi[-1] > mcsi[-2]
+    mcsi_reclaim_10 = mcsi[-1] > mcsi10[-1] and mcsi[-2] <= mcsi10[-2]
+    mcsi_above_10 = mcsi[-1] > mcsi10[-1]
+    mcsi_curl_down = mcsi[-1] < mcsi[-2] < mcsi[-3] or mcsi[-1] < mcsi[-2]
+
+    # market gate (QQQE structure)
+    mkt = MARKET_REFERENCES["market"]
+    mkt_ana = ana.get(mkt)
+    mkt_above_rising = bool(mkt_ana and mkt_ana["close"] > mkt_ana["ema21_mid"] and mkt_ana["struct_rising"])
+    mkt_reclaim = bool(mkt_ana and mkt_ana["reclaim"])
+
+    # market regime classification
+    if mkt_above_rising and mcsi_above_10:
+        regime = "UPTREND_CONFIRMED"
+        stance = "Aggressiv: Pullbacks in Leader kaufen, bei Bestätigung 0,5% Risiko."
+    elif mkt_reclaim or (mkt_ana and mkt_ana["close"] > mkt_ana["ema21_mid"]):
+        regime = "REPAIR_TEST"
+        stance = "Vorsichtig testen: Pilot-Positionen 0,125-0,25% Risiko, nur Top-Leader."
+    elif mkt_ana and mkt_ana["below_all"]:
+        regime = "BREAKDOWN"
+        stance = "Kein neues Risiko. Kapital schützen, Structure-Rebuild abwarten."
+    else:
+        regime = "NEUTRAL_CHOP"
+        stance = "Abwarten. Nur High-Conviction-Setups minimaler Größe."
+
+    # RS ranks
+    closes_by_symbol = {s: a["closes"] for s, a in ana.items()}
+    rs, _ = rs_rank(closes_by_symbol)
+
+    # Liquid Leaders filter (Alex's scan, adapted)
+    leaders = []
+    for sym, a in ana.items():
+        if a["dollar_vol"] < 100e6:
+            continue
+        if a["share_vol"] < 1e6:
+            continue
+        if a["close"] < 10:
+            continue
+        if not (3.0 <= a["adr_pct"] <= 15.0):
+            continue
+        if rs.get(sym, 0) < 70:
+            continue
+        leaders.append(sym)
+
+    # Pullback setup scan
+    setups = []
+    for sym in leaders:
+        a = ana[sym]
+        if not a["struct_rising"]:
+            continue
+        if not (0.0 <= a["dist_ema21_atr"] <= 1.0):
+            continue
+        if not (-0.5 <= a["dist_sma50_atr"] <= 4.0):
+            continue
+        earn_soon = earnings_within_n_days(sym, 7, ref_ts=asof_ts)
+        if earn_soon is True:
+            continue
+        entry_zone = (a["ema21_lo"], a["ema21_hi"])
+        stop = a["ema21_lo"]
+        risk_per_share = a["close"] - stop
+        if risk_per_share <= 0:
+            continue
+        target_2r = a["close"] + 2 * risk_per_share
+        setups.append({
+            "symbol": sym, "rs": rs.get(sym), "close": a["close"],
+            "entry_zone": entry_zone, "stop": stop, "target_2r": target_2r,
+            "dist_atr": a["dist_ema21_atr"], "contraction": a["contraction"],
+            "earnings_unknown": earn_soon is None,
+        })
+    setups.sort(key=lambda s: (-s["rs"], s["dist_atr"]))
+    focus = setups[:5]
+
+    # structure breaks for previously signaled names (state diff)
+    state_path = os.path.join(HERE, "state_sim.json" if as_of else "state.json")
+    prev = {}
+    if os.path.exists(state_path):
+        try:
+            prev = json.load(open(state_path))
+        except Exception:
+            prev = {}
+    breaks = [s for s in ana if s in prev.get("focus", []) and ana[s]["broke_low"]]
+    reclaims = [s for s in ana if s in prev.get("focus", []) and ana[s]["reclaim"]]
+
+    state = {
+        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "regime": regime, "stance": stance,
+        "mco": mco_now, "mco_z": mco_z,
+        "mcsi": mcsi[-1], "mcsi_above_10": mcsi_above_10,
+        "mcsi_reclaim_10": mcsi_reclaim_10, "mcsi_curl_up": mcsi_curl_up,
+        "mcsi_curl_down": mcsi_curl_down,
+        "market_ref": mkt, "market_above_rising_21": mkt_above_rising,
+        "market_reclaim": mkt_reclaim,
+        "leaders_count": len(leaders),
+        "focus": [s["symbol"] for s in focus],
+        "setups": setups, "breaks": breaks, "reclaims": reclaims,
+    }
+    with open(state_path, "w") as f:
+        json.dump(state, f, indent=1)
+    with open(os.path.join(HERE, f"report_{state['generated_utc'][:10]}.json"), "w") as f:
+        json.dump(state, f, indent=1)
+    return state
+
+
+if __name__ == "__main__":
+    st = run()
+    print(json.dumps({k: v for k, v in st.items() if k != "setups"}, indent=1))
+    print("SETUPS:", json.dumps(st["setups"][:8], indent=1))

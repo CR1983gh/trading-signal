@@ -1,0 +1,32 @@
+name: Daily Signal Update
+on:
+  schedule:
+    # Mo-Fr 21:15 UTC = 23:15 deutsche Sommerzeit (kurz nach US-Schluss)
+    - cron: "15 21 * * 1-5"
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  signal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run signal engine
+        run: python engine.py > /dev/null
+      - name: Build & push site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SIGNAL_REPO: ${{ github.repository }}
+        run: python build_site.py
+      - name: Enable GitHub Pages (idempotent)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages" \
+            -d '{"source":{"branch":"main","path":"/"}}' || true
