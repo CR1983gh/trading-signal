@@ -45,6 +45,14 @@ h2{font-size:1rem;margin:18px 0 10px;color:var(--blue)}
 .badge.warn{border-color:var(--yellow);color:var(--yellow)}
 a.sym{color:var(--text);text-decoration:none;border-bottom:1px dashed var(--blue)}
 a.sym:active{color:var(--blue)}
+.eur{color:var(--blue);font-size:.82em;font-weight:400;white-space:nowrap}
+.cur{color:var(--dim);font-size:.85em;font-weight:400}
+.gauge{display:flex;gap:6px;margin-top:12px}
+.gseg{flex:1;height:10px;border-radius:5px;transition:all .3s}
+.glabels{display:flex;gap:6px;margin-top:4px}
+.glabels span{flex:1;text-align:center;font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.why{margin-top:12px;font-size:.84rem;line-height:1.5;color:var(--text);opacity:.85;background:rgba(255,255,255,.04);border-radius:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.06)}
+.meter .hint{font-size:.72rem;color:var(--dim);margin-top:5px;line-height:1.4}
 .card.grade-green{border-left-color:var(--green);background:rgba(46,160,67,.07)}
 .card.grade-yellow{border-left-color:var(--yellow);background:rgba(210,153,34,.06)}
 .card.grade-red{border-left-color:var(--red);background:rgba(248,81,73,.05)}
@@ -85,7 +93,7 @@ button:hover{border-color:var(--blue)}
 </footer>
 
 <script>
-const DATA = {"generated_utc":"2026-09-27T15:30:27.535410+00:00","regime":"NEUTRAL_CHOP","stance":"Abwarten. Nur High-Conviction-Setups minimaler Gr\u00f6\u00dfe.","mco":0.6581924538519242,"mco_z":0.12737295410668825,"mcsi":-663.6332637611621,"mcsi_above_10":false,"mcsi_reclaim_10":false,"mcsi_curl_up":true,"mcsi_curl_down":false,"market_ref":"QQQE","market_above_rising_21":false,"market_reclaim":false,"leaders_count":22,"focus":["SNOW","TEAM","NBIS","FTNT","PANW"],"setups":[{"symbol":"SNOW","rs":89,"close":335.94000244140625,"tv":"NYSE:SNOW","tg_isin":"US8334451098","tg_spread":0.8481764206955046,"entry_zone":[325.2899503565796,338.70939576089546],"stop":325.2899503565796,"target_2r":357.24010661105956,"dist_atr":0.3563525676086732,"contraction":true,"earnings_unknown":false,"score":0.848,"grade":"green"},{"symbol":"TEAM","rs":95,"close":187.74000549316406,"tv":"NASDAQ:TEAM","tg_isin":"US0494681010","tg_spread":0.7281553398058355,"entry_zone":[180.01827277978842,188.08806772921338],"stop":180.01827277978842,"target_2r":203.18347091991535,"dist_atr":0.4526900206646347,"contraction":true,"earnings_unknown":false,"score":0.846,"grade":"green"},{"symbol":"NBIS","rs":91,"close":237.3300018310547,"tv":"NASDAQ:NBIS","tg_isin":"NL0009805522","tg_spread":0.2640105604224087,"entry_zone":[218.66332839541195,233.31773679610566],"stop":218.66332839541195,"target_2r":274.66334870234016,"dist_atr":0.7797154722720944,"contraction":true,"earnings_unknown":false,"score":0.73,"grade":"green"},{"symbol":"FTNT","rs":92,"close":173.4600067138672,"tv":"NASDAQ:FTNT","tg_isin":"US34959E1091","tg_spread":0.5124499047368775,"entry_zone":[164.36958105530564,170.81197223255737],"stop":164.36958105530564,"target_2r":191.64085803099027,"dist_atr":0.796199005480112,"contraction":true,"earnings_unknown":false,"score":0.729,"grade":"green"},{"symbol":"PANW","rs":93,"close":374.739990234375,"tv":"NASDAQ:PANW","tg_isin":"US6974351057","tg_spread":0.3953771289537748,"entry_zone":[356.4981571651157,373.02477151424796],"stop":356.4981571651157,"target_2r":411.22365637289363,"dist_atr":0.49140551976596686,"contraction":false,"earnings_unknown":false,"score":0.675,"grade":"yellow"},{"symbol":"HOOD","rs":70,"close":119.4000015258789,"tv":"NASDAQ:HOOD","tg_isin":"US7707001027","tg_spread":0.2866698518872405,"entry_zone":[111.67186927430453,117.28426657469326],"stop":111.67186927430453,"target_2r":134.85626602902767,"dist_atr":0.8436505963497424,"contraction":true,"earnings_unknown":false,"score":0.615,"grade":"yellow"}],"breaks":[],"reclaims":[]};
+const DATA = {"generated_utc":"2026-09-27T15:58:36.037645+00:00","regime":"NEUTRAL_CHOP","stance":"Abwarten. Nur High-Conviction-Setups minimaler Gr\u00f6\u00dfe.","mco":0.6581924538519242,"mco_z":0.12737295410668825,"mcsi":-663.6332637611621,"mcsi_above_10":false,"mcsi_reclaim_10":false,"mcsi_curl_up":true,"mcsi_curl_down":false,"market_ref":"QQQE","market_above_rising_21":false,"market_reclaim":false,"fx_usd_eur":1.1401,"leaders_count":22,"focus":["SNOW","TEAM","NBIS","FTNT","PANW"],"setups":[{"symbol":"SNOW","rs":89,"close":335.94000244140625,"ccy":"USD","eur":{"entry_zone":[285.31,297.08],"stop":285.31,"target_2r":313.34,"close":294.65},"tv":"NYSE:SNOW","tg_isin":"US8334451098","tg_spread":0.8481764206955046,"entry_zone":[325.2899503565796,338.70939576089546],"stop":325.2899503565796,"target_2r":357.24010661105956,"dist_atr":0.3563525676086732,"contraction":true,"earnings_unknown":false,"score":0.848,"grade":"green"},{"symbol":"TEAM","rs":95,"close":187.74000549316406,"ccy":"USD","eur":{"entry_zone":[157.89,164.97],"stop":157.89,"target_2r":178.21,"close":164.67},"tv":"NASDAQ:TEAM","tg_isin":"US0494681010","tg_spread":0.7281553398058355,"entry_zone":[180.01827277978842,188.08806772921338],"stop":180.01827277978842,"target_2r":203.18347091991535,"dist_atr":0.4526900206646347,"contraction":true,"earnings_unknown":false,"score":0.846,"grade":"green"},{"symbol":"NBIS","rs":91,"close":237.3300018310547,"ccy":"USD","eur":{"entry_zone":[191.79,204.64],"stop":191.79,"target_2r":240.91,"close":208.16},"tv":"NASDAQ:NBIS","tg_isin":"NL0009805522","tg_spread":0.2640105604224087,"entry_zone":[218.66332839541195,233.31773679610566],"stop":218.66332839541195,"target_2r":274.66334870234016,"dist_atr":0.7797154722720944,"contraction":true,"earnings_unknown":false,"score":0.73,"grade":"green"},{"symbol":"FTNT","rs":92,"close":173.4600067138672,"ccy":"USD","eur":{"entry_zone":[144.17,149.82],"stop":144.17,"target_2r":168.09,"close":152.14},"tv":"NASDAQ:FTNT","tg_isin":"US34959E1091","tg_spread":0.5124499047368775,"entry_zone":[164.36958105530564,170.81197223255737],"stop":164.36958105530564,"target_2r":191.64085803099027,"dist_atr":0.796199005480112,"contraction":true,"earnings_unknown":false,"score":0.729,"grade":"green"},{"symbol":"PANW","rs":93,"close":374.739990234375,"ccy":"USD","eur":{"entry_zone":[312.68,327.18],"stop":312.68,"target_2r":360.68,"close":328.68},"tv":"NASDAQ:PANW","tg_isin":"US6974351057","tg_spread":0.3953771289537748,"entry_zone":[356.4981571651157,373.02477151424796],"stop":356.4981571651157,"target_2r":411.22365637289363,"dist_atr":0.49140551976596686,"contraction":false,"earnings_unknown":false,"score":0.675,"grade":"yellow"},{"symbol":"HOOD","rs":70,"close":119.4000015258789,"ccy":"USD","eur":{"entry_zone":[97.95,102.87],"stop":97.95,"target_2r":118.28,"close":104.73},"tv":"NASDAQ:HOOD","tg_isin":"US7707001027","tg_spread":0.2866698518872405,"entry_zone":[111.67186927430453,117.28426657469326],"stop":111.67186927430453,"target_2r":134.85626602902767,"dist_atr":0.8436505963497424,"contraction":true,"earnings_unknown":false,"score":0.615,"grade":"yellow"}],"breaks":[],"reclaims":[]};
 
 const REGIMES = {
   UPTREND_CONFIRMED:{cls:"g-green",label:"GRÜN — Aufwärtstrend bestätigt",buy:true},
@@ -98,23 +106,39 @@ function f(x,d=2){ if(x==null) return "—"; return x.toLocaleString("de-DE",{mi
 
 function render(){
   const r = REGIMES[DATA.regime] || REGIMES.NEUTRAL_CHOP;
-  document.getElementById("stamp").textContent = "Stand: " + (DATA.generated_utc||"").slice(0,16).replace("T"," ") + " UTC · " + DATA.leaders_count + " Liquid Leaders";
+  document.getElementById("stamp").textContent = "Stand: " + (DATA.generated_utc||"").slice(0,16).replace("T"," ") + " UTC · " + DATA.leaders_count + " Liquid Leaders" + (DATA.fx_usd_eur ? ` · 1 € = ${f(DATA.fx_usd_eur)} $ (Umrechnung EUR-Anzeige)` : "");
   const a = document.getElementById("ampel");
   a.className = "ampel " + r.cls;
-  a.innerHTML = `<div class="bulb"></div><div class="txt">${r.label}<small>${DATA.stance||""}</small></div>`;
+  // 4-stufige Tacho-Leiste: rot -> orange -> gelb -> gruen, Marker auf aktuellem Regime
+  const ORDER = ["BREAKDOWN","NEUTRAL_CHOP","REPAIR_TEST","UPTREND_CONFIRMED"];
+  const idx = Math.max(0, ORDER.indexOf(DATA.regime));
+  const gauge = ORDER.map((k,i)=>{
+    const on = i===idx;
+    const col = {BREAKDOWN:"var(--red)",NEUTRAL_CHOP:"var(--orange)",REPAIR_TEST:"var(--yellow)",UPTREND_CONFIRMED:"var(--green)"}[k];
+    return `<div class="gseg ${on?'on':''}" style="${on?`background:${col};box-shadow:0 0 14px ${col}`:`background:${col};opacity:.18`}"></div>`;
+  }).join("");
+  const EXPLAIN = {
+    UPTREND_CONFIRMED: "Die Stimmung an der Börse ist klar positiv: Der breite Tech-Markt liegt über seinem kurzfristigen Trend und die Marktbreite stimmt. In so einem Umfeld funktionieren Kaufsignale am zuverlässigsten.",
+    REPAIR_TEST: "Der Markt erholt sich gerade von einem Rückgang, ist aber noch nicht vollständig gesund. Kleine Testkäufe sind vertretbar — große Positionen wären verfrüht.",
+    NEUTRAL_CHOP: "Der Markt hat keine klare Richtung: mal rauf, mal runter, ohne Trend. Kaufsignale hier verpuffen häufiger — deshalb: abwarten und nur beobachten.",
+    BREAKDOWN: "Der Markt ist unter seinen kurzfristigen Trend gefallen. In so einer Phase steigen die meisten Aktien nicht — Kapital schützen ist jetzt wichtiger als Rendite."
+  };
+  a.innerHTML = `<div class="bulb"></div><div class="txt">${r.label}<small>${DATA.stance||""}</small>
+    <div class="gauge">${gauge}<div class="glabels"><span>Rot</span><span>Orange</span><span>Gelb</span><span>Grün</span></div></div>
+    <div class="why">💡 ${EXPLAIN[DATA.regime]||""}</div></div>`;
 
   const m = [];
-  m.push(`<div class="meter"><div class="k">Markt-Gate (${DATA.market_ref})</div><div class="v ${DATA.market_above_rising_21?"ok":"bad"}">${DATA.market_above_rising_21?"✅ über steigender 21dma-Struktur":"❌ nicht über steigender Struktur"}${DATA.market_reclaim?" · Reclaim!":""}</div></div>`);
+  m.push(`<div class="meter"><div class="k">Markt-Gate (${DATA.market_ref})</div><div class="v ${DATA.market_above_rising_21?"ok":"bad"}">${DATA.market_above_rising_21?"✅ über steigender 21dma-Struktur":"❌ nicht über steigender Struktur"}${DATA.market_reclaim?" · Reclaim!":""}</div><div class="hint">Der wichtigste Filter: Nur wenn der breite Tech-Markt über seinem Trend liegt, sind Kaufsignale überhaupt aussichtsreich. Wie eine Ampel vor der Abfahrt.</div></div>`);
   const z = DATA.mco_z;
   const mcoCls = z<=-2?"ok":z<=-1?"warn":z>=1?"warn":"neu";
   const mcoTxt = z<=-2?"überverkauft 🎯":z<=-1?"überverkauft ⚠️":z>=1?"überkauft":"neutral";
-  m.push(`<div class="meter"><div class="k">MCO (Näherung)</div><div class="v ${mcoCls}">${f(z,2)}σ — ${mcoTxt}</div></div>`);
+  m.push(`<div class="meter"><div class="k">MCO (Näherung)</div><div class="v ${mcoCls}">${f(z,2)}σ — ${mcoTxt}</div><div class="hint">Misst die Stimmung: Wie viele Aktien steigen gerade vs. fallen? Stark überverkauft (= negativ übertrieben) bedeutet oft: bald mögliche Erholung.</div></div>`);
   let mcsiTxt = DATA.mcsi_above_10?"über 10dma ✅":"unter 10dma";
   let mcsiCls = DATA.mcsi_above_10?"ok":"bad";
   if(DATA.mcsi_reclaim_10){mcsiTxt+=" · RECLAIM = Gas 🚀";mcsiCls="ok";}
   else if(DATA.mcsi_curl_down){mcsiTxt+=" · curlt runter ⛔";mcsiCls="bad";}
   else if(DATA.mcsi_curl_up){mcsiTxt+=" · curlt hoch = testen";mcsiCls="warn";}
-  m.push(`<div class="meter"><div class="k">MCSI (Bestätigung)</div><div class="v ${mcsiCls}">${mcsiTxt}</div></div>`);
+  m.push(`<div class="meter"><div class="k">MCSI (Bestätigung)</div><div class="v ${mcsiCls}">${mcsiTxt}</div><div class="hint">Der Trend der Marktstimmung: Steigt die Beteiligung gerade? Bestätigt er das Kaufsignal, darf man größer einsteigen.</div></div>`);
   document.getElementById("meters").innerHTML = m.join("");
 
   const all = DATA.setups || [];
@@ -123,6 +147,11 @@ function render(){
   const GRADE_COLOR = {green:"var(--green)", yellow:"var(--yellow)", red:"var(--red)"};
   function cardHtml(s, i, dim){
     const [lo,hi]=s.entry_zone;
+    const eu = s.eur;
+    const cur = s.ccy || "USD";
+    const showEur = eu && cur !== "EUR";
+    const euStr = (v)=> showEur && v != null ? ` <span class="eur">≈ ${f(v)} €</span>` : '';
+    const euStr2 = (z)=> showEur && z ? ` <span class="eur">≈ ${f(z[0])}–${f(z[1])} €</span>` : '';
     const badges = [];
     if(s.contraction) badges.push('<span class="badge on">Kontraktion ✅</span>');
     if(s.tg_spread != null) badges.push(`<span class="badge ${s.tg_spread<=0.5?'on':'warn'}">TG-Spread ${f(s.tg_spread,2)}%</span>`);
@@ -136,10 +165,10 @@ function render(){
         <span><span class="grade-badge grade-${g}">${GRADE_LABEL[g]}</span> <span class="rs">RS <b>${s.rs}</b> · Score ${f(s.score,2)}</span></span>
       </div>
       <div class="rows">
-        <span class="l">Entry-Zone</span><span class="r ${dim?'':'buy'}">${f(lo)} – ${f(hi)} $</span>
+        <span class="l">Entry-Zone <span class="cur">${cur}</span></span><span class="r ${dim?'':'buy'}">${f(lo)} – ${f(hi)} ${cur}${euStr2(eu&&eu.entry_zone)}</span>
         <span class="l">Distanz zur 21-EMA</span><span class="r">${f(s.dist_atr,2)}× ATR</span>
-        <span class="l">Stop (21-EMA-Low)</span><span class="r stop">${f(s.stop)} $</span>
-        <span class="l">2R-Ziel (⅓ Trim)</span><span class="r tgt">${f(s.target_2r)} $</span>
+        <span class="l">Stop (21-EMA-Low)</span><span class="r stop">${f(s.stop)} ${cur}${euStr(eu&&eu.stop)}</span>
+        <span class="l">2R-Ziel (⅓ Trim)</span><span class="r tgt">${f(s.target_2r)} ${cur}${euStr(eu&&eu.target_2r)}</span>
       </div>
       <div class="scorebar"><i style="width:${Math.round((s.score||0)*100)}%;background:${GRADE_COLOR[g]}"></i></div>
       <div class="badges">${badges.join("")}</div>
