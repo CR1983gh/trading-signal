@@ -74,6 +74,18 @@ a.sym:active{color:var(--blue)}
 .legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:4px}
 .card .stockchart{margin-top:12px;border-radius:8px;background:rgba(0,0,0,.22);padding:8px 8px 4px}
 .card .stockchart svg{width:100%;height:120px;display:block}
+/* Watchlist-Tools */
+.wltools{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:14px}
+.wlform{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:12px;padding:14px}
+.wlform .ct{font-size:.8rem;font-weight:700;margin-bottom:10px}
+.wlrow{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.wlform input{flex:1;background:#0d1117;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:.86rem;min-width:0}
+.wlform input:focus{outline:none;border-color:var(--blue)}
+.wlform button{margin-top:0;white-space:nowrap}
+.wlform .hint{font-size:.72rem;color:var(--dim);line-height:1.5;margin-top:4px}
+#wlMsg{font-size:.78rem}
+.wldel{background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:6px;padding:2px 8px;font-size:.72rem;cursor:pointer;margin-left:8px}
+.wldel:hover{border-color:var(--red);color:var(--red)}
 .card.grade-green{border-left-color:var(--green);background:rgba(46,160,67,.07)}
 .card.grade-yellow{border-left-color:var(--yellow);background:rgba(210,153,34,.06)}
 .card.grade-red{border-left-color:var(--red);background:rgba(248,81,73,.05)}
@@ -109,6 +121,30 @@ button:hover{border-color:var(--blue)}
 <div id="alerts"></div>
 
 <div id="watchlist"></div>
+
+<div class="wltools" id="wltools">
+  <div class="wlform">
+    <div class="ct">➕ Position hinzufügen (gekauft)</div>
+    <div class="wlrow">
+      <input id="wlSym" placeholder="Ticker (z.B. SNOW, SAP.DE)" autocomplete="off" style="text-transform:uppercase">
+      <input id="wlEntry" placeholder="Einstiegskurs" inputmode="decimal">
+    </div>
+    <div class="wlrow">
+      <input id="wlStop" placeholder="Stop (leer = 21-EMA-Low)" inputmode="decimal">
+      <input id="wlNote" placeholder="Notiz (optional)">
+    </div>
+    <div class="wlrow"><button onclick="wlAdd()">💾 Hinzufügen</button><span id="wlMsg"></span></div>
+  </div>
+  <div class="wlform" id="wlTokenBox">
+    <div class="ct">🔑 GitHub-Sync (einmalig einrichten)</div>
+    <div class="wlrow">
+      <input id="wlToken" type="password" placeholder="Fine-grained PAT (nur Contents:RW auf trading-signal)">
+      <button onclick="wlSaveToken()">Verbinden</button>
+      <button onclick="wlClearToken()">Trennen</button>
+    </div>
+    <div class="hint" id="wlTokenHint">Ohne Token: Positionen nur lokal in diesem Browser gespeichert — kein Verkaufssignal-Check über die Website-Updates und kein Telegram-Bericht. Mit Token: Positionen werden direkt ins Repo geschrieben, der tägliche Rebuild prüft Stop/Verkaufssignal automatisch. Token anlegen: github.com → Settings → Developer settings → Fine-grained tokens → nur Repo "trading-signal", Berechtigung "Contents: Read and write". Der Token liegt nur in deinem Browser (localStorage).</div>
+  </div>
+</div>
 
 <footer>
   <b>Regel-Logik:</b> Entry nur 0–1×ATR über steigender 21dma-Struktur · Risiko 0,25 % (Schwäche) / 0,5 % (Bestätigung) / max 1 % (High Conviction) · Trim ⅓ bei 2R · Runner bis Tagesschluss unter 21-EMA-Low · Kein Markt-Gate = kein neues Risiko · <b>Watchlist: Tagesschluss unter Stop = Verkaufssignal.</b><br><br>
@@ -302,7 +338,7 @@ function render(){
 
   // ---- Meine Watchlist (gekaufte Positionen) ----
   const wl = document.getElementById("watchlist");
-  const pos = DATA.positions || [];
+  const pos = wlEffectivePositions();
   if(pos.length){
     const sells = pos.filter(p=>p.status==="SELL");
     let html = `<h2 style="color:${sells.length?'var(--red)':'var(--blue)'}">💼 Meine Watchlist (${pos.length})${sells.length?` — ${sells.length} Verkaufssignal(e)!`:''}</h2>`;
@@ -315,7 +351,7 @@ function render(){
       const euPnl = eu?` <span class="eur">(≈ ${f(eu.close)} €)</span>`:"";
       if(p.status==="SELL"){
         html += `<div class="card" style="border:1px solid var(--red);border-left:4px solid var(--red);animation:pulse-buy 2.2s infinite">
-          <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${p.symbol} ↗</a></span>
+          <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${p.symbol} ↗</a><button class="wldel" onclick="wlRemove('${p.symbol}')">entfernen</button></span>
           <span class="buynow-badge" style="background:var(--red);color:#fff">🔻 VERKAUFSSIGNAL — Schluss unter Stop</span></div>
           <div class="rows">
             <span class="l">Einstieg ${cur} · ${p.date||""}</span><span class="r">${f(p.entry)} ${cur}${eu?` <span class="eur">(≈ ${f(eu.entry)} €)</span>`:""}</span>
@@ -327,9 +363,19 @@ function render(){
         </div>`;
       } else if(p.status==="NO_DATA"){
         html += `<div class="card" style="opacity:.7"><div class="top"><span class="sym">${p.symbol}</span><span class="badge warn">Keine Daten</span></div></div>`;
+      } else if(p._localOnly){
+        html += `<div class="card" style="border-left-color:var(--dim);opacity:.85">
+          <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${p.symbol} ↗</a><button class="wldel" onclick="wlRemove('${p.symbol}')">entfernen</button></span>
+          <span class="badge warn">nur lokal — Token verbinden für Stop-Check</span></div>
+          <div class="rows">
+            <span class="l">Einstieg · ${p.date||""}</span><span class="r">${f(p.entry)}</span>
+            <span class="l">Stop</span><span class="r stop">${p.stop==null?"21-EMA-Low":f(p.stop)}</span>
+          </div>
+          ${p.note?`<div class="badges"><span class="badge">${p.note}</span></div>`:""}
+        </div>`;
       } else {
         html += `<div class="card" style="border-left-color:${pnl!=null&&pnl>=0?'var(--green)':'var(--yellow)'}">
-          <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${p.symbol} ↗</a></span>
+          <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${p.symbol} ↗</a><button class="wldel" onclick="wlRemove('${p.symbol}')">entfernen</button>${p._localOnly?' <span class="badge warn">nur lokal</span>':''}</span>
           <span><span class="badge on">gehalten seit ${p.date||"?"}</span>${p.trim_reached?' <span class="badge on">2R erreicht — ⅓ Trim! ✅</span>':''}</span></div>
           <div class="rows">
             <span class="l">Einstieg ${cur}</span><span class="r">${f(p.entry)} ${cur}${eu?` <span class="eur">(≈ ${f(eu.entry)} €)</span>`:""}</span>
@@ -349,8 +395,104 @@ function render(){
   document.getElementById("genInfo").textContent = "Auto-Update: Mo–Fr nach US-Schluss (GitHub Actions). ";
 }
 
-function checkForUpdate(btn){
-  const msg = document.getElementById("refreshMsg");
+// ================= Watchlist: direkt auf der Seite verwalten =================
+const WL_REPO = "CR1983gh/trading-signal";
+const LS_POS = "pt_positions_local";
+const LS_TOK = "pt_gh_token";
+
+function wlLocal(){ try{ return JSON.parse(localStorage.getItem(LS_POS)||"[]"); }catch(e){ return []; } }
+function wlSetLocal(p){ localStorage.setItem(LS_POS, JSON.stringify(p)); }
+function wlToken(){ return localStorage.getItem(LS_TOK)||""; }
+
+function wlSaveToken(){
+  const t = document.getElementById("wlToken").value.trim();
+  if(!t){ wlMsg("Kein Token eingegeben.", true); return; }
+  // validate token against repo
+  fetch(`https://api.github.com/repos/${WL_REPO}/contents/positions.json`, {headers:{Authorization:"Bearer "+t, Accept:"application/vnd.github+json"}})
+    .then(r=>{
+      if(r.ok || r.status===404){ localStorage.setItem(LS_TOK, t); document.getElementById("wlToken").value=""; wlMsg("✓ Verbunden — Positionen werden jetzt ins Repo synchronisiert."); }
+      else if(r.status===401||r.status===403){ wlMsg("Token ungültig oder keine Schreibrechte auf trading-signal.", true); }
+      else wlMsg("Fehler: HTTP "+r.status, true);
+    }).catch(()=>wlMsg("Netzwerkfehler.", true));
+}
+function wlClearToken(){ localStorage.removeItem(LS_TOK); wlMsg("Token entfernt — nur noch lokaler Modus."); }
+function wlMsg(t, err){ const m=document.getElementById("wlMsg"); m.textContent=t; m.style.color=err?"var(--red)":"var(--green)"; setTimeout(()=>{ if(m.textContent===t) m.textContent=""; }, 8000); }
+
+function wlAdd(){
+  const sym = document.getElementById("wlSym").value.trim().toUpperCase();
+  const entry = parseFloat(document.getElementById("wlEntry").value.replace(",","."));
+  const stopV = document.getElementById("wlStop").value.trim();
+  const stop = stopV==="" ? null : parseFloat(stopV.replace(",","."));
+  const note = document.getElementById("wlNote").value.trim();
+  if(!sym || isNaN(entry)){ wlMsg("Ticker und Einstiegskurs nötig.", true); return; }
+  if(stopV!=="" && isNaN(stop)){ wlMsg("Stop ungültig.", true); return; }
+  const pos = {symbol:sym, entry, stop, date:new Date().toISOString().slice(0,10), note};
+  const tok = wlToken();
+  if(tok){
+    wlSyncPush(pos, tok);
+  } else {
+    const l = wlLocal().filter(p=>p.symbol!==sym); l.push(pos); wlSetLocal(l);
+    wlMsg("Lokal gespeichert (nur dieser Browser). Für echten Sync GitHub-Token verbinden.");
+    render();
+  }
+}
+
+function wlSyncPush(newPos, tok){
+  wlMsg("Synchronisiere mit GitHub…");
+  fetch(`https://api.github.com/repos/${WL_REPO}/contents/positions.json`, {headers:{Authorization:"Bearer "+tok, Accept:"application/vnd.github+json"}})
+    .then(r=> r.ok ? r.json() : (r.status===404 ? {content:null} : Promise.reject("HTTP "+r.status)))
+    .then(d=>{
+      let cur = [];
+      if(d.content){ try{ cur = JSON.parse(atob(d.content.replace(/\n/g,""))); }catch(e){ cur = []; } }
+      cur = cur.filter(p=>p.symbol!==newPos.symbol); cur.push(newPos);
+      const payload = {message:`Watchlist: ${newPos.symbol} added via site ${new Date().toISOString().slice(0,16)}`,
+                      content:btoa(unescape(encodeURIComponent(JSON.stringify(cur,null,1)))).replace(/^(.{76})/gm,"$1\n"),
+                      branch:"main"};
+      if(d.sha) payload.sha = d.sha;
+      return fetch(`https://api.github.com/repos/${WL_REPO}/contents/positions.json`, {method:"PUT",
+        headers:{Authorization:"Bearer "+tok, Accept:"application/vnd.github+json","Content-Type":"application/json"},
+        body:JSON.stringify(payload)});
+    })
+    .then(r=>{
+      if(r.ok){ wlMsg("✓ Ins Repo geschrieben — Verkaufssignal-Check läuft ab nächstem Update (Mo–Fr 22 Uhr)."); }
+      else if(r.status===409){ wlMsg("Konflikt — Seite neu laden und erneut versuchen.", true); }
+      else wlMsg("GitHub-Fehler: HTTP "+r.status, true);
+    })
+    .catch(e=>wlMsg("Sync fehlgeschlagen: "+e, true));
+}
+
+function wlRemove(sym){
+  const tok = wlToken();
+  if(tok){
+    wlMsg("Entferne "+sym+" aus Repo…");
+    fetch(`https://api.github.com/repos/${WL_REPO}/contents/positions.json`, {headers:{Authorization:"Bearer "+tok, Accept:"application/vnd.github+json"}})
+      .then(r=> r.ok?r.json():Promise.reject("HTTP "+r.status))
+      .then(d=>{
+        let cur=[]; try{ cur=JSON.parse(atob(d.content.replace(/\n/g,""))); }catch(e){}
+        cur = cur.filter(p=>p.symbol!==sym);
+        const payload={message:`Watchlist: ${sym} removed via site`, content:btoa(unescape(encodeURIComponent(JSON.stringify(cur,null,1)))).replace(/^(.{76})/gm,"$1\n"), branch:"main", sha:d.sha};
+        return fetch(`https://api.github.com/repos/${WL_REPO}/contents/positions.json`,{method:"PUT",headers:{Authorization:"Bearer "+tok,Accept:"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify(payload)});
+      })
+      .then(r=>{ if(r.ok){ wlMsg("✓ Entfernt."); } else wlMsg("Fehler: HTTP "+r.status,true); })
+      .catch(e=>wlMsg("Fehler: "+e,true));
+  } else {
+    wlSetLocal(wlLocal().filter(p=>p.symbol!==sym));
+    render();
+  }
+}
+
+// merge local-only positions into view when repo has no token sync
+function wlEffectivePositions(){
+  const repo = (DATA.positions||[]).slice();
+  if(!wlToken()){
+    for(const lp of wlLocal()){
+      if(!repo.some(p=>p.symbol===lp.symbol)) repo.push({...lp, _localOnly:true});
+    }
+  }
+  return repo;
+}
+
+function checkForUpdate(btn){  const msg = document.getElementById("refreshMsg");
   msg.textContent = "prüfe…";
   fetch(location.href.split("?")[0] + "?cb=" + Date.now(), {cache:"no-store"})
     .then(r=>r.text())
