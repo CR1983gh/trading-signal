@@ -81,6 +81,23 @@ def main(state_file="state.json"):
         lines.append("💤 *Heute keine Long-Setups — Markt im Breakdown. Kapital schützen.*")
     else:
         lines.append("💤 *Keine Setups heute: keine Liquid Leader im kaufbaren 21dma-Pullback-Fenster.*")
+    # personal watchlist
+    pos = st.get("positions", [])
+    if pos:
+        lines.append("")
+        sells = [p for p in pos if p["status"] == "SELL"]
+        lines.append(f"*💼 Meine Watchlist ({len(pos)} Positionen)*" + (f" — ⚠️ {len(sells)} Verkaufssignal(e)!" if sells else ":"))
+        for p in pos:
+            pnl = p.get("pnl_pct")
+            pnls = f"{pnl:+.1f}%".replace("-", "−") if pnl is not None else "—"
+            if p["status"] == "SELL":
+                lines.append(f"🔻 *{p['symbol']} — VERKAUFSSIGNAL!* Schluss {fmt(p['close'])} {p.get('ccy','USD')} unter Stop {fmt(p['stop'])} ({p.get('stop_src','')}) · P&L {pnls}")
+            elif p["status"] == "NO_DATA":
+                lines.append(f"❓ *{p['symbol']}* — keine Kursdaten")
+            else:
+                trim = " · ✅ *2R erreicht: ⅓ Trim!*" if p.get("trim_reached") else ""
+                lines.append(f"💼 *{p['symbol']}* (seit {p.get('date','?')}) — Einstieg {fmt(p['entry'])} · Stop {fmt(p['stop'])} · Schluss {fmt(p['close'])} · P&L {pnls}{trim}")
+
     lines.append("")
     lines.append("_Keine Anlageberatung — Signal nach Alex' Swing-System (traderslab.gitbook.io). MCO/MCSI sind eine Universe-Näherung, keine NYSE-Originaldaten._")
     return "\n".join(lines)

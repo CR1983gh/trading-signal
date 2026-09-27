@@ -108,6 +108,8 @@ button:hover{border-color:var(--blue)}
 
 <div id="alerts"></div>
 
+<div id="watchlist"></div>
+
 <footer>
   <b>Regel-Logik:</b> Entry nur 0–1×ATR über steigender 21dma-Struktur · Risiko 0,25 % (Schwäche) / 0,5 % (Bestätigung) / max 1 % (High Conviction) · Trim ⅓ bei 2R · Runner bis Tagesschluss unter 21-EMA-Low · Kein Markt-Gate = kein neues Risiko.<br><br>
   ⚠️ Keine Anlageberatung. MCO/MCSI sind eine Näherung aus dem liquiden Universe, keine NYSE-Originaldaten. Das System ist diskretionär ausgelegt — Signale ersetzen kein eigenes Urteil.<br>
@@ -297,6 +299,52 @@ function render(){
   if((DATA.breaks||[]).length) al.push(`<div class="card alert"><b>⚠️ Strukturbruch</b> bei bisherigen Signalen: ${DATA.breaks.join(", ")} — Ausstiegsregel prüfen.</div>`);
   if((DATA.reclaims||[]).length) al.push(`<div class="card rec"><b>♻️ Reclaim</b> bei bisherigen Signalen: ${DATA.reclaims.join(", ")}</div>`);
   document.getElementById("alerts").innerHTML = al.join("");
+
+  // ---- Meine Watchlist (gekaufte Positionen) ----
+  const wl = document.getElementById("watchlist");
+  const pos = DATA.positions || [];
+  if(pos.length){
+    const sells = pos.filter(p=>p.status==="SELL");
+    let html = `<h2 style="color:${sells.length?'var(--red)':'var(--blue)'}">💼 Meine Watchlist (${pos.length})${sells.length?` — ${sells.length} Verkaufssignal(e)!`:''}</h2>`;
+    for(const p of pos){
+      const tvUrl = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent((p.symbol||'').replace('.DE','')? (p.symbol.endsWith('.DE')?'XETRA:'+p.symbol.replace('.DE',''):p.symbol):'')}`;
+      const eu = p.eur;
+      const cur = p.ccy||"USD";
+      const pnl = p.pnl_pct;
+      const pnlCol = pnl==null?"var(--dim)":pnl>=0?"var(--green)":"var(--red)";
+      const euPnl = eu?` <span class="eur">(≈ ${f(eu.close)} €)</span>`:"";
+      if(p.status==="SELL"){
+        html += `<div class="card" style="border:1px solid var(--red);border-left:4px solid var(--red);animation:pulse-buy 2.2s infinite">
+          <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${p.symbol} ↗</a></span>
+          <span class="buynow-badge" style="background:var(--red);color:#fff">🔻 VERKAUFSSIGNAL — Schluss unter Stop</span></div>
+          <div class="rows">
+            <span class="l">Einstieg ${cur} · ${p.date||""}</span><span class="r">${f(p.entry)} ${cur}${eu?` <span class="eur">(≈ ${f(eu.entry)} €)</span>`:""}</span>
+            <span class="l">Stop (${p.stop_src||""})</span><span class="r stop">${f(p.stop)} ${cur}${eu?` <span class="eur">(≈ ${f(eu.stop)} €)</span>`:""}</span>
+            <span class="l">Tagesschluss</span><span class="r" style="color:var(--red);font-weight:700">${f(p.close)} ${cur}${euPnl}</span>
+            <span class="l">P&L</span><span class="r" style="color:${pnlCol};font-weight:700">${pnl==null?"—":(pnl>=0?"+":"")+f(pnl,1)+" %"}</span>
+          </div>
+          <div class="limitnote" style="color:var(--red);border-color:rgba(255,107,94,.4);background:rgba(255,107,94,.08)">🚨 <b>Regel:</b> Tagesschluss unter Stop → Position verkaufen (nächster Handelstag, Limit nahe Schlusskurs).${p.note?` — ${p.note}`:""}</div>
+        </div>`;
+      } else if(p.status==="NO_DATA"){
+        html += `<div class="card" style="opacity:.7"><div class="top"><span class="sym">${p.symbol}</span><span class="badge warn">Keine Daten</span></div></div>`;
+      } else {
+        html += `<div class="card" style="border-left-color:${pnl!=null&&pnl>=0?'var(--green)':'var(--yellow)'}">
+          <div class="top"><span class="sym"><a class="sym" href="${tvUrl}" target="_blank" rel="noopener">${p.symbol} ↗</a></span>
+          <span><span class="badge on">gehalten seit ${p.date||"?"}</span>${p.trim_reached?' <span class="badge on">2R erreicht — ⅓ Trim! ✅</span>':''}</span></div>
+          <div class="rows">
+            <span class="l">Einstieg ${cur}</span><span class="r">${f(p.entry)} ${cur}${eu?` <span class="eur">(≈ ${f(eu.entry)} €)</span>`:""}</span>
+            <span class="l">Stop (${p.stop_src||""})</span><span class="r stop">${f(p.stop)} ${cur}${eu?` <span class="eur">(≈ ${f(eu.stop)} €)</span>`:""}</span>
+            <span class="l">Tagesschluss</span><span class="r">${f(p.close)} ${cur}${euPnl}</span>
+            <span class="l">P&L</span><span class="r" style="color:${pnlCol};font-weight:700">${pnl==null?"—":(pnl>=0?"+":"")+f(pnl,1)+" %"}</span>
+          </div>
+          ${p.note?`<div class="badges"><span class="badge">${p.note}</span></div>`:""}
+        </div>`;
+      }
+    }
+    wl.innerHTML = html;
+  } else {
+    wl.innerHTML = "";
+  }
 
   document.getElementById("genInfo").textContent = "Auto-Update: Mo–Fr nach US-Schluss (GitHub Actions). ";
 }

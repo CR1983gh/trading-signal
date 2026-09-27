@@ -227,6 +227,52 @@ def load_tg_map():
     return {}
 
 
+def check_positions(ana, fx=None):
+    """Check user's personal watchlist positions against today's close.
+    Sell signal: Tagesschluss unter Stop. Stop None -> aktuelle 21-EMA-Low."""
+    try:
+        from positions import load as load_positions
+        plist = load_positions()
+    except Exception:
+        plist = []
+    out = []
+    for p in plist:
+        sym = p["symbol"]
+        a = ana.get(sym)
+        if not a:
+            out.append({**p, "status": "NO_DATA", "close": None})
+            continue
+        stop = p.get("stop")
+        stop_src = "manuell"
+        if stop is None:
+            stop = a["ema21_lo"]
+            stop_src = "21-EMA-Low"
+        close = a["close"]
+        pnl_pct = (close / p["entry"] - 1) * 100 if p.get("entry") else None
+        if close < stop:
+            status = "SELL"  # Tagesschluss unter Stop -> Verkaufssignal
+        elif pnl_pct is not None and pnl_pct >= 100:  # placeholder never triggers without 2R check
+            status = "HOLD"
+        else:
+            status = "HOLD"
+        # 2R check: close >= entry + 2*(entry-stop) -> trim hint
+        trim_reached = False
+        if p.get("entry") and stop and p["entry"] > stop:
+            r2 = p["entry"] + 2 * (p["entry"] - stop)
+            trim_reached = close >= r2
+        item = {
+            **p, "stop": round(stop, 2), "stop_src": stop_src,
+            "close": round(close, 2), "pnl_pct": round(pnl_pct, 2) if pnl_pct is not None else None,
+            "status": status, "trim_reached": trim_reached,
+            "ccy": "EUR" if sym.endswith(".DE") else "USD",
+        }
+        if fx and item["ccy"] == "USD":
+            item["eur"] = {"close": round(close / fx, 2), "stop": round(stop / fx, 2),
+                          "entry": round(p["entry"] / fx, 2) if p.get("entry") else None}
+        out.append(item)
+    return out
+
+
 def run(as_of=None):
     """as_of: 'YYYY-MM-DD' -> simulate run as of that day's close (data truncated)."""
     from universe import US_TICKERS, DE_TICKERS, MARKET_REFERENCES
@@ -425,6 +471,9 @@ def run(as_of=None):
     breaks = [s for s in ana if s in prev.get("focus", []) and ana[s]["broke_low"]]
     reclaims = [s for s in ana if s in prev.get("focus", []) and ana[s]["reclaim"]]
 
+    # personal watchlist check
+    positions = check_positions(ana, fx=fx)
+
     state = {
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "regime": regime, "stance": stance,
@@ -440,6 +489,7 @@ def run(as_of=None):
         "leaders_count": len(leaders),
         "focus": [s["symbol"] for s in focus],
         "setups": setups, "breaks": breaks, "reclaims": reclaims,
+        "positions": positions,
     }
     with open(state_path, "w") as f:
         json.dump(state, f, indent=1)
