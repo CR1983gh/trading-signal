@@ -9,6 +9,8 @@ on:
     paths: ["engine.py", "universe.py", "template.html", "build_site.py"]
 permissions:
   contents: write
+  pages: write
+  id-token: write
 jobs:
   signal:
     runs-on: ubuntu-latest
