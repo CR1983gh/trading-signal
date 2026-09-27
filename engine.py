@@ -157,6 +157,7 @@ def analyze_symbol(rows):
     broke_low = rows[-1]["c"] < lo[-1] and rows[-2]["c"] >= lo[-2]
     reclaim = rows[-1]["c"] > hi[-1] and rows[-2]["c"] <= hi[-2]
     closes = [r["c"] for r in rows]
+    N = 60  # chart history kept per symbol for GUI
     return {
         "close": c, "ema21_hi": hi[-1], "ema21_mid": cl[-1], "ema21_lo": lo[-1],
         "sma50": sma50, "atr": a, "adr_pct": adr_pct,
@@ -166,6 +167,12 @@ def analyze_symbol(rows):
         "above_all": above_all, "below_all": below_all,
         "broke_low": broke_low, "reclaim": reclaim,
         "closes": closes,
+        "chart": {
+            "c": [round(x, 2) for x in closes[-N:]],
+            "e_mid": [round(x, 2) for x in cl[-N:]],
+            "e_lo": [round(x, 2) for x in lo[-N:]],
+            "e_hi": [round(x, 2) for x in hi[-N:]],
+        },
     }
 
 
@@ -224,7 +231,8 @@ def run(as_of=None):
     """as_of: 'YYYY-MM-DD' -> simulate run as of that day's close (data truncated)."""
     from universe import US_TICKERS, DE_TICKERS, MARKET_REFERENCES
     tg_map = load_tg_map()
-    all_syms = US_TICKERS + DE_TICKERS
+    mkt_ref = MARKET_REFERENCES["market"]
+    all_syms = list(dict.fromkeys(US_TICKERS + DE_TICKERS + [mkt_ref]))
     asof_ts = None
     if as_of:
         asof_ts = datetime.strptime(as_of, "%Y-%m-%d").replace(
@@ -276,6 +284,14 @@ def run(as_of=None):
     mcsi_reclaim_10 = mcsi[-1] > mcsi10[-1] and mcsi[-2] <= mcsi10[-2]
     mcsi_above_10 = mcsi[-1] > mcsi10[-1]
     mcsi_curl_down = mcsi[-1] < mcsi[-2] < mcsi[-3] or mcsi[-1] < mcsi[-2]
+
+    # chart history (last 90 sessions) for GUI graphics
+    HIST_N = 90
+    hist = {
+        "mco": [round(x, 2) for x in mco[-HIST_N:]],
+        "mcsi": [round(x, 1) for x in mcsi[-HIST_N:]],
+        "mcsi10": [round(x, 1) for x in mcsi10[-HIST_N:]],
+    }
 
     # market gate (QQQE structure)
     mkt = MARKET_REFERENCES["market"]
@@ -374,6 +390,7 @@ def run(as_of=None):
             "entry_zone": entry_zone, "stop": stop, "target_2r": target_2r,
             "dist_atr": a["dist_ema21_atr"], "contraction": a["contraction"],
             "earnings_unknown": earn_soon is None,
+            "chart": a["chart"],
             # BUY NOW: Tagesschluss liegt IN der Entry-Zone -> Limitorder zum Schlusskurs moeglich
             "buy_now": (entry_zone[0] <= a["close"] <= entry_zone[1]),
             # Risk: prozentualer Abstand Schlusskurs -> Stop. Ideal <= 5%.
@@ -417,6 +434,8 @@ def run(as_of=None):
         "mcsi_curl_down": mcsi_curl_down,
         "market_ref": mkt, "market_above_rising_21": mkt_above_rising,
         "market_reclaim": mkt_reclaim,
+        "market_chart": mkt_ana["chart"] if mkt_ana else None,
+        "hist": hist,
         "fx_usd_eur": round(fx, 4) if fx else None,
         "leaders_count": len(leaders),
         "focus": [s["symbol"] for s in focus],

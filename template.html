@@ -64,6 +64,16 @@ a.sym:active{color:var(--blue)}
 .stopbadge.good{border-color:rgba(63,185,80,.6);color:var(--green);background:rgba(63,185,80,.08)}
 .stopbadge.mid{border-color:rgba(227,179,65,.6);color:var(--yellow);background:rgba(227,179,65,.08)}
 .stopbadge.high{border-color:rgba(255,107,94,.6);color:var(--red);background:rgba(255,107,94,.08)}
+/* Charts */
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:6px}
+.chartbox{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:12px;padding:12px 12px 8px}
+.chartbox .ct{font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.chartbox .cs{font-size:.78rem;margin-bottom:6px}
+.chartbox svg{width:100%;height:110px;display:block}
+.legend{display:flex;gap:12px;margin-top:5px;font-size:.66rem;color:var(--dim);flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:4px}
+.card .stockchart{margin-top:12px;border-radius:8px;background:rgba(0,0,0,.22);padding:8px 8px 4px}
+.card .stockchart svg{width:100%;height:120px;display:block}
 .card.grade-green{border-left-color:var(--green);background:rgba(46,160,67,.07)}
 .card.grade-yellow{border-left-color:var(--yellow);background:rgba(210,153,34,.06)}
 .card.grade-red{border-left-color:var(--red);background:rgba(248,81,73,.05)}
@@ -91,6 +101,8 @@ button:hover{border-color:var(--blue)}
 
 <div class="meters" id="meters"></div>
 
+<div class="charts" id="charts"></div>
+
 <h2 id="focusTitle">🎯 Focuslist</h2>
 <div id="cards"></div>
 
@@ -114,6 +126,77 @@ const REGIMES = {
 };
 
 function f(x,d=2){ if(x==null) return "—"; return x.toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+
+// ---- generischer SVG-Liniendiagramm-Renderer ----
+function lineChart(series, opts){
+  const W=opts.w||300, H=opts.h||110, P=6;
+  let lo=opts.lo, hi=opts.hi;
+  if(lo==null||hi==null){
+    const all = series.flatMap(s=>s.vals).filter(v=>v!=null);
+    lo=Math.min(...all); hi=Math.max(...all);
+    const pad=(hi-lo)*0.1||1; lo-=pad; hi+=pad;
+  }
+  const X=(i,n)=>P+(i/(n-1))*(W-2*P);
+  const Y=v=>H-P-((v-lo)/(hi-lo))*(H-2*P);
+  let out=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+  if(opts.zeroLine){
+    const zy=Y(0);
+    if(zy>P&&zy<H-P) out+=`<line x1="${P}" y1="${zy}" x2="${W-P}" y2="${zy}" stroke="#8b949e" stroke-width="1" stroke-dasharray="2 3" opacity=".5"/>`;
+  }
+  for(const s of series){
+    const n=s.vals.length;
+    const pts=s.vals.map((v,i)=>`${X(i,n).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+    if(s.fill){
+      out+=`<polyline points="${P},${(H-P).toFixed(1)} ${pts} ${W-P},${(H-P).toFixed(1)}" fill="${s.fill}" stroke="none"/>`;
+    }
+    out+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="${s.w||1.8}" ${s.dash?`stroke-dasharray="${s.dash}"`:""} opacity="${s.op||1}"/>`;
+    const last=s.vals[n-1];
+    out+=`<circle cx="${W-P}" cy="${Y(last).toFixed(1)}" r="2.6" fill="${s.color}"/>`;
+  }
+  out+="</svg>";
+  return out;
+}
+
+function renderMarketCharts(){
+  const el = document.getElementById("charts");
+  if(!el) return;
+  const boxes = [];
+  const mc = DATA.market_chart;
+  if(mc){
+    const above = DATA.market_above_rising_21;
+    const col = above ? "var(--green)" : "var(--red)";
+    boxes.push(`<div class="chartbox"><div class="ct">Markt-Referenz ${DATA.market_ref} · 60 Tage</div>
+      <div class="cs" style="color:${col}">${above?"Kurs über der 21dma-Struktur ✅":"Kurs unter der Struktur ❌"}</div>
+      ${lineChart([
+        {vals:mc.e_hi, color:"#58a6ff", dash:"3 3", w:1, op:.55},
+        {vals:mc.e_lo, color:"#58a6ff", dash:"3 3", w:1, op:.55},
+        {vals:mc.c, color:col, w:2},
+      ],{h:110})}
+      <div class="legend"><span><i style="background:#e6edf3"></i>Schlusskurs</span><span><i style="background:#58a6ff"></i>21dma-Struktur</span></div>
+    </div>`);
+  }
+  const h = DATA.hist;
+  if(h && h.mco){
+    const z = DATA.mco_z;
+    const zc = z<=-2?"var(--green)":z<=-1?"var(--yellow)":z>=1?"var(--orange)":"var(--blue)";
+    boxes.push(`<div class="chartbox"><div class="ct">MCO — Marktstimmung · 90 Tage</div>
+      <div class="cs" style="color:${zc}">${f(z,2)}σ — ${z<=-2?"überverkauft 🎯":z<=-1?"überverkauft ⚠️":z>=1?"überkauft":"neutral"}</div>
+      ${lineChart([{vals:h.mco, color:zc, w:1.8, fill: z<0?"rgba(63,185,80,.12)":"rgba(88,166,255,.10)"}],{h:110, zeroLine:true})}
+      <div class="legend"><span>Über Mitte = Stimmung hebt sich · Unter Mitte = senkt sich</span></div>
+    </div>`);
+    const mc10 = DATA.mcsi_above_10;
+    const mcc = DATA.mcsi_reclaim_10?"var(--green)":mc10?"var(--green)":DATA.mcsi_curl_down?"var(--red)":"var(--yellow)";
+    boxes.push(`<div class="chartbox"><div class="ct">MCSI — Markt-Beteiligung · 90 Tage</div>
+      <div class="cs" style="color:${mcc}">${mc10?"über 10dma ✅":"unter 10dma"}${DATA.mcsi_reclaim_10?" · RECLAIM 🚀":""}</div>
+      ${lineChart([
+        {vals:h.mcsi10, color:"#8b949e", dash:"3 3", w:1.2},
+        {vals:h.mcsi, color:mcc, w:2},
+      ],{h:110})}
+      <div class="legend"><span><i style="background:#8b949e"></i>10-Tage-Linie</span><span>MCSI über der Linie = Beteiligung steigt</span></div>
+    </div>`);
+  }
+  el.innerHTML = boxes.join("");
+}
 
 function render(){
   const r = REGIMES[DATA.regime] || REGIMES.NEUTRAL_CHOP;
@@ -151,6 +234,7 @@ function render(){
   else if(DATA.mcsi_curl_up){mcsiTxt+=" · curlt hoch = testen";mcsiCls="warn";}
   m.push(`<div class="meter"><div class="k">MCSI (Bestätigung)</div><div class="v ${mcsiCls}">${mcsiTxt}</div><div class="hint">Der Trend der Marktstimmung: Steigt die Beteiligung gerade? Bestätigt er das Kaufsignal, darf man größer einsteigen.</div></div>`);
   document.getElementById("meters").innerHTML = m.join("");
+  renderMarketCharts();
 
   const all = DATA.setups || [];
   const c = document.getElementById("cards");
@@ -189,6 +273,11 @@ function render(){
         <span class="l">2R-Ziel (⅓ Trim)</span><span class="r tgt">${f(s.target_2r)} ${cur}${euStr(eu&&eu.target_2r)}</span>
       </div>
       ${limitNote}
+      ${s.chart ? `<div class="stockchart">${lineChart([
+        {vals:s.chart.e_hi, color:"#58a6ff", dash:"3 3", w:1, op:.5},
+        {vals:s.chart.e_lo, color:"#58a6ff", dash:"3 3", w:1, op:.5},
+        {vals:s.chart.c, color: s.buy_now ? "#3fb950" : (s.grade==="green"?"#3fb950":s.grade==="yellow"?"#e3b341":"#ff6b5e"), w:2},
+      ],{h:120})}<div class="legend"><span><i style="background:#e6edf3"></i>Kurs 60 Tage</span><span><i style="background:#58a6ff"></i>21dma-Struktur = Kaufzone</span></div></div>` : ''}
       <div class="scorebar"><i style="width:${Math.round((s.score||0)*100)}%;background:${GRADE_COLOR[g]}"></i></div>
       <div class="badges">${badges.join("")}</div>
     </div>`;
