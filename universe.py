@@ -11,6 +11,8 @@ US_UNIVERSE = [
     "CIEN","DELL","HPQ","CSCO","IBM","ACN","BRZE","HUBS","TEAM","MNDY",
     "HOOD","COIN","RBLX","ROKU","DUOL","TTD","SE","BROS",
     "ALAB","CRDO","NBIS","IONQ","RGTI","QBTS",
+    # Expansion 2026-09-27: Tradegate-verified liquid additions
+    "ADI","MPWR","TER","SNPS","CDNS","MELI","SHOP","APLD","WDC","GEV","CRCL",
     "AXON","KTOS","LUNR","RDW",
     "NKE","LULU","SBUX","CMG","YUM","MCD",
     "DIS","CHTR","LYV",

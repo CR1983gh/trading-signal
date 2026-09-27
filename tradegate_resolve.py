@@ -51,6 +51,18 @@ OVERRIDE = {
     "NSC": "US6558441084",    # Norfolk Southern, TG 274.00 vs 274.54
     "MUV2.DE": "DE0008430026",# Munich Re, TG 511.40 vs 510.40
     "HNR1.DE": "DE0008402215",# Hannover Rueck, TG 258.00 vs 257.80
+    # --- expansion batch 2026-09-27 (all price-verified <1% diff) ---
+    "ADI": "US0326541051",    # Analog Devices
+    "MPWR": "US6098391054",   # Monolithic Power
+    "TER": "US8807701029",    # Teradyne
+    "SNPS": "US8716071076",   # Synopsys
+    "CDNS": "US1273871087",   # Cadence Design
+    "MELI": "US58733R1023",   # MercadoLibre
+    "SHOP": "CA82509L1076",   # Shopify
+    "APLD": "US0381692070",   # Applied Digital
+    "WDC": "US9581021055",    # Western Digital
+    "GEV": "US36828A1016",    # GE Vernova
+    "CRCL": "US1725731079",   # Circle Internet Group
 }
 
 

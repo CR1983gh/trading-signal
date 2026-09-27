@@ -600,16 +600,8 @@
   "executions": 27
  },
  "CSCO": {
-  "isin": "US17275R1023",
-  "name": "Cisco Systems Inc.",
-  "tg_ticker": "CIS",
-  "bid": 93.58,
-  "ask": 93.8,
-  "last": 93.7,
-  "spread_abs": 0.21999999999999886,
-  "spread_pct": 0.23481694951435467,
-  "eur_volume": 679251.0,
-  "executions": 149
+  "isin": null,
+  "note": "not found/validated on tradegate"
  },
  "IBM": {
   "isin": "US4592001014",
@@ -826,6 +818,138 @@
   "spread_pct": 0.3601244066132034,
   "eur_volume": 1470287.0,
   "executions": 281
+ },
+ "ADI": {
+  "isin": "US0326541051",
+  "name": "ADI",
+  "tg_ticker": "",
+  "bid": 345.0,
+  "ask": 346.15,
+  "last": 346.25,
+  "spread_abs": 1.1499999999999773,
+  "spread_pct": 0.332778702163055,
+  "eur_volume": 383286.0,
+  "executions": 20
+ },
+ "MPWR": {
+  "isin": "US6098391054",
+  "name": "MPWR",
+  "tg_ticker": "",
+  "bid": 1199.5,
+  "ask": 1201.5,
+  "last": 1205.5,
+  "spread_abs": 2.0,
+  "spread_pct": 0.16659725114535612,
+  "eur_volume": 154961.0,
+  "executions": 20
+ },
+ "TER": {
+  "isin": "US8807701029",
+  "name": "TER",
+  "tg_ticker": "",
+  "bid": 348.6,
+  "ask": 350.45,
+  "last": 350.5,
+  "spread_abs": 1.849999999999966,
+  "spread_pct": 0.5292897503754999,
+  "eur_volume": 332105.0,
+  "executions": 65
+ },
+ "SNPS": {
+  "isin": "US8716071076",
+  "name": "SNPS",
+  "tg_ticker": "",
+  "bid": 373.5,
+  "ask": 374.0,
+  "last": 373.0,
+  "spread_abs": 0.5,
+  "spread_pct": 0.13377926421404682,
+  "eur_volume": 629427.0,
+  "executions": 135
+ },
+ "CDNS": {
+  "isin": "US1273871087",
+  "name": "CDNS",
+  "tg_ticker": "",
+  "bid": 285.8,
+  "ask": 286.35,
+  "last": 284.55,
+  "spread_abs": 0.5500000000000114,
+  "spread_pct": 0.19225727519007646,
+  "eur_volume": 288082.0,
+  "executions": 50
+ },
+ "MELI": {
+  "isin": "US58733R1023",
+  "name": "MELI",
+  "tg_ticker": "",
+  "bid": 1536.8,
+  "ask": 1538.8,
+  "last": 1537.4,
+  "spread_abs": 2.0,
+  "spread_pct": 0.13005592404734034,
+  "eur_volume": 1563969.0,
+  "executions": 196
+ },
+ "SHOP": {
+  "isin": "CA82509L1076",
+  "name": "SHOP",
+  "tg_ticker": "",
+  "bid": 124.58,
+  "ask": 125.08,
+  "last": 124.88,
+  "spread_abs": 0.5,
+  "spread_pct": 0.40054474084755265,
+  "eur_volume": 175989.0,
+  "executions": 55
+ },
+ "APLD": {
+  "isin": "US0381692070",
+  "name": "APLD",
+  "tg_ticker": "",
+  "bid": 22.98,
+  "ask": 23.08,
+  "last": 23.0,
+  "spread_abs": 0.09999999999999787,
+  "spread_pct": 0.43421623968735507,
+  "eur_volume": 337794.0,
+  "executions": 76
+ },
+ "WDC": {
+  "isin": "US9581021055",
+  "name": "WDC",
+  "tg_ticker": "",
+  "bid": 399.4,
+  "ask": 402.05,
+  "last": 400.25,
+  "spread_abs": 2.650000000000034,
+  "spread_pct": 0.661301391228407,
+  "eur_volume": 836576.0,
+  "executions": 106
+ },
+ "GEV": {
+  "isin": "US36828A1016",
+  "name": "GEV",
+  "tg_ticker": "",
+  "bid": 835.8,
+  "ask": 844.0,
+  "last": 834.4,
+  "spread_abs": 8.200000000000045,
+  "spread_pct": 0.9763067031789554,
+  "eur_volume": 535216.0,
+  "executions": 94
+ },
+ "CRCL": {
+  "isin": "US1725731079",
+  "name": "CRCL",
+  "tg_ticker": "",
+  "bid": 77.8,
+  "ask": 78.25,
+  "last": 77.8,
+  "spread_abs": 0.45000000000000284,
+  "spread_pct": 0.5767382249279114,
+  "eur_volume": 691936.0,
+  "executions": 116
  },
  "AXON": {
   "isin": "US05464C1018",

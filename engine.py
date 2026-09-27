@@ -320,7 +320,7 @@ def run(as_of=None):
         vol = tg.get("eur_volume")
         if not tg.get("isin") or spread is None or spread > 1.0:
             continue
-        if vol is not None and vol < 500_000:
+        if vol is not None and vol < 100_000:
             continue
         leaders.append(sym)
 
