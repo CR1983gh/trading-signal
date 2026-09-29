@@ -1,8 +1,11 @@
 name: Daily Signal Update
 on:
   schedule:
-    # Mo-Fr 20:00 UTC = 22:00 deutsche Sommerzeit (direkt nach US-Schluss)
+    # Backup-Slots: GitHub verzoegert Crons oft. 20:00 UTC = 22:00 DE (Hauptlauf),
+    # 23:00 und 03:00 UTC als Nachholelaeufe (build_site.py ueberspringt, wenn Daten unveraendert).
     - cron: "0 20 * * 1-5"
+    - cron: "0 23 * * 1-5"
+    - cron: "0 3 * * 2-6"
   workflow_dispatch: {}
   push:
     branches: [main]
