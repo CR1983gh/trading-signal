@@ -18,12 +18,18 @@ jobs:
   signal:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - name: Run signal engine
-        run: python engine.py > /dev/null
+      - name: Run signal engine (retry x3)
+        run: |
+          for i in 1 2 3; do
+            if python engine.py > /tmp/engine.log 2>&1; then echo "Engine OK (attempt $i)"; break; fi
+            echo "Engine attempt $i failed:"; tail -20 /tmp/engine.log
+            if [ "$i" = "3" ]; then exit 1; fi
+            sleep 30
+          done
       - name: Build & push site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
