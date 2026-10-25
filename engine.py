@@ -324,6 +324,11 @@ def run(as_of=None):
         down_series.append(d)
 
     mco, mcsi, mcsi10, mco_mean, mco_sd = mcclellan(up_series, down_series)
+    if len(mcsi) < 3 or len(mco) < 3 or mco_sd == 0:
+        raise RuntimeError(
+            f"Not enough market history for MCSI/MCO (got {len(mcsi)} sessions; "
+            "Yahoo chart API likely returned truncated data — retry later)"
+        )
     mco_now = mco[-1]
     mco_z = (mco_now - mco_mean) / mco_sd
     mcsi_curl_up = mcsi[-1] > mcsi[-2] > mcsi[-3] or mcsi[-1] > mcsi[-2]
