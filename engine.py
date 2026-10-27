@@ -311,10 +311,15 @@ def run(as_of=None):
         return ups, downs
 
     up_series, down_series = [], []
-    L = min(len(r) - 1 for r in data.values())
+    # Breadth nur über Ticker mit ausreichender Historie: ein einzelner Titel
+    # mit frischem Listing/leerer Historie würde die aligned Serie sonst auf
+    # seine minimale Länge stauchen (MCO/MCSI-Kurven wurden dadurch grob).
+    BREADTH_MIN = 250
+    breadth_rows = [r for r in data.values() if len(r) - 1 >= BREADTH_MIN]
+    L = min(len(r) - 1 for r in breadth_rows)
     for k in range(L):
         u = d = 0
-        for rows in data.values():
+        for rows in breadth_rows:
             i = len(rows) - L + k
             if rows[i]["c"] > rows[i - 1]["c"]:
                 u += 1
