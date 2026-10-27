@@ -507,3 +507,5 @@ if __name__ == "__main__":
     st = run()
     print(json.dumps({k: v for k, v in st.items() if k != "setups"}, indent=1))
     print("SETUPS:", json.dumps(st["setups"][:8], indent=1))
+
+# manual Actions trigger 2026-10-27
