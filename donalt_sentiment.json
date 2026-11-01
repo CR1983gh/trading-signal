@@ -1,17 +1,29 @@
 {
  "handle": "DonAlt",
- "generated_utc": "2026-11-01T07:37:53.607760+00:00",
- "signal": "BEARISH",
- "avg_score": -3.45,
- "n_posts_scored": 10,
+ "generated_utc": "2026-11-01T07:43:35.669509+00:00",
+ "signal": "NEUTRAL",
+ "avg_score": 1.54,
+ "n_posts_scored": 3,
  "window_days": 14,
  "threshold": 2.5,
  "latest_post": {
-  "date": "2026-10-29T23:50:00",
-  "text": "Wake up Binance hacked for like 6B Expect price down 30% Down 3% Not sure if strength or the nuke is just delayed If price isn't down significantly by Monday bottom of this bear market probably already in Might just have to go through hell chop to digest this Show more",
-  "score": -7.0
+  "date": "2026-11-01T02:43:06",
+  "text": "Last time the market didn't properly sell off after a huge event like this was the FTX collapse When I saw the lack of follow through then I got giga bullish And we subsequently went from 16k to 100k Hard to be bearish here after having been given the same setup yet again",
+  "score": 8.0
  },
  "posts": [
+  {
+   "date": "2026-11-01T02:43:06",
+   "text": "Last time the market didn't properly sell off after a huge event like this was the FTX collapse When I saw the lack of follow through then I got giga bullish And we subsequently went from 16k to 100k Hard to be bearish here after having been given the same setup yet again",
+   "score": 8.0,
+   "hits": [
+    "\\bbullish\\b",
+    "giga bullish",
+    "hard to be bearish|difficult to be bearish|can'?t be bearish",
+    "same setup",
+    "\\bbearish\\b"
+   ]
+  },
   {
    "date": "2026-10-29T23:50:00",
    "text": "Wake up Binance hacked for like 6B Expect price down 30% Down 3% Not sure if strength or the nuke is just delayed If price isn't down significantly by Monday bottom of this bear market probably already in Might just have to go through hell chop to digest this Show more",
@@ -28,69 +40,6 @@
    "score": 1.0,
    "hits": [
     "looks excellent|still strong|looks good"
-   ]
-  },
-  {
-   "date": "2026-10-12T06:02:00",
-   "text": "People always say \"Would be more bullish if it went down first\" \"Retest and that'd be giga bullish\" Wtf are you talking about, up to infinity in one candle would be the most bullish All the other shit might be bullish but most definitely less so than simply up only Show more",
-   "score": 8.0,
-   "hits": [
-    "\\bbullish\\b"
-   ]
-  },
-  {
-   "date": "2026-10-11T23:52:00",
-   "text": "Market kind of shrugging off all the panic from last week for now Love to see that, if we full retrace that whole fuckery the bull market is officially on",
-   "score": 7.0,
-   "hits": [
-    "bull market",
-    "love to see",
-    "bull market is officially on",
-    "shrugging off"
-   ]
-  },
-  {
-   "date": "2026-10-08T18:20:00",
-   "text": "Haven't had time to keep up with the cryptography story Can someone give a TLDR? Is it actually as bad as the timeline says?",
-   "score": 0.0,
-   "hits": []
-  },
-  {
-   "date": "2026-10-04T22:27:00",
-   "text": "\"I'll buy when it corrects\" What if we already got the correction and it looks like this?",
-   "score": 0.0,
-   "hits": []
-  },
-  {
-   "date": "2026-10-04T20:42:00",
-   "text": "This thing is gonna have to gap up to $100k for people to finally start being bullish on this thing",
-   "score": 2.0,
-   "hits": [
-    "\\bbullish\\b"
-   ]
-  },
-  {
-   "date": "2026-10-02T04:46:00",
-   "text": "$ETH No serious resistance left IMO I'm just gonna ignore everything and HODL",
-   "score": 7.0,
-   "hits": [
-    "\\bhodl\\b",
-    "no (serious )?resistance",
-    "ignore everything and hodl"
-   ]
-  },
-  {
-   "date": "2026-10-02T04:43:00",
-   "text": "The cope everywhere So sweet",
-   "score": 0.0,
-   "hits": []
-  },
-  {
-   "date": "2026-10-01T03:00:00",
-   "text": "Ansem down 50% since this post BTC up 30% You guys do you but I'd rather not hold garbage when I can just hold good things instead Stop empowering extraction",
-   "score": -3.0,
-   "hits": [
-    "expect price down|down \\d{1,3}%"
    ]
   }
  ],

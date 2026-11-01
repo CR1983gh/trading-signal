@@ -26,6 +26,10 @@ MIRRORS = [
 # Gewichtetes Lexikon (lowercase regex-match). Bull-Liste positiv, Bear-Liste negativ.
 BULL = {
     r"\bbullish\b": 2, r"bull market": 2,
+    r"giga bullish": 4, r"got bullish": 3,
+    # Doppelte Verneinung: "hard/difficult to be bearish" = bullish gemeint
+    r"hard to be bearish|difficult to be bearish|can'?t be bearish": 3,
+    r"same setup": 1,
     r"leg up": 2, r"explode": 2, r"parabolic": 3,
     r"new ath|ath is in sight|make a new ath|new all-time": 2,
     r"\bhodl\b": 2, r"no (serious )?resistance": 2, r"nothing (left )?in (the )?way": 2,
@@ -60,10 +64,24 @@ def fetch(url, timeout=25):
     return urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8", "ignore")
 
 
+MANUAL = os.path.join(HERE, "donalt_manual_posts.json")
+
+
+def load_manual():
+    """Manuell ergaenzte Posts (z.B. per Screenshot vom Nutzer eingespeist)."""
+    if os.path.exists(MANUAL):
+        try:
+            return json.load(open(MANUAL, encoding="utf-8"))
+        except Exception:
+            return []
+    return []
+
+
 def parse_posts():
-    """Datum + Text der Posts vom Twiscan-Mirror (Fallback: xitter-Mirror)."""
+    """Datum + Text der Posts vom Twiscan-Mirror (Fallback: xitter-Mirror),
+    plus manuell nachgereichte Posts (donalt_manual_posts.json)."""
     import html as _html
-    posts = []
+    posts = load_manual()
     for base in MIRRORS:
         try:
             page = fetch(base)
